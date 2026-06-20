@@ -5,7 +5,7 @@ import { HamburgerMenu } from './HamburgerMenu';
 import { useAuth } from '../../auth/AuthContext';
 import { useVisibleTabs } from '../../hooks/useVisibleTabs';
 
-/** Au-delà de ce nombre d'onglets, le surplus n'est accessible que via le hamburger, même en desktop. */
+/** Au-delà de ce nombre d'onglets, le surplus n'est accessible que via le bouton "Plus" (desktop). */
 const MAX_TOP_TABS = 3;
 
 export function TopBar() {
@@ -18,7 +18,7 @@ export function TopBar() {
     <header className="app-topbar">
       <button
         type="button"
-        className={`app-topbar__hamburger${hasOverflow ? ' app-topbar__hamburger--always' : ''}`}
+        className="app-topbar__hamburger"
         aria-label="Ouvrir le menu"
         aria-expanded={menuOpen}
         onClick={() => setMenuOpen((open) => !open)}
@@ -29,6 +29,22 @@ export function TopBar() {
       </button>
       <div className="app-topbar__brand">Challenge CardeGall</div>
       <Tabs variant="top" maxVisible={hasOverflow ? MAX_TOP_TABS : undefined} />
+      {hasOverflow ? (
+        <button
+          type="button"
+          className="app-topbar__more"
+          aria-label="Plus d'options de navigation"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <span className="app-topbar__more-icon">
+            <span />
+            <span />
+            <span />
+          </span>
+          <span className="app-topbar__more-label">Plus</span>
+        </button>
+      ) : null}
       <div className="app-topbar__auth">
         {loading ? null : user ? (
           <>

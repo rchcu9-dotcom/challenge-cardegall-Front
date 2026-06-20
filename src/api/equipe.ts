@@ -44,6 +44,11 @@ export interface ClotureResultDto {
   cloture: true;
 }
 
+export interface DecloturationResultDto {
+  equipes: EquipeDto[];
+  cloture: false;
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => null);
@@ -102,4 +107,11 @@ export async function cloturerEnrolements(): Promise<ClotureResultDto> {
     method: 'POST',
   });
   return handleResponse<ClotureResultDto>(res);
+}
+
+export async function decloturerEnrolements(): Promise<DecloturationResultDto> {
+  const res = await authFetch(`${API_BASE_URL}/equipes/decloturer-enrolements`, {
+    method: 'POST',
+  });
+  return handleResponse<DecloturationResultDto>(res);
 }

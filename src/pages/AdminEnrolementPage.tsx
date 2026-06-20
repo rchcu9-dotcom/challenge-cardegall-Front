@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { EnrolementList } from '../components/admin/EnrolementList';
 import {
   cloturerEnrolements,
+  decloturerEnrolements,
   enrolerEquipe,
   getEnrolementEtat,
   listEnrolees,
@@ -52,6 +53,11 @@ export function AdminEnrolementPage() {
 
   const cloturerMutation = useMutation({
     mutationFn: cloturerEnrolements,
+    onSuccess: invalidateAll,
+  });
+
+  const decloturerMutation = useMutation({
+    mutationFn: decloturerEnrolements,
     onSuccess: invalidateAll,
   });
 
@@ -122,17 +128,33 @@ export function AdminEnrolementPage() {
       </section>
 
       <section className="page__card">
-        <button
-          type="button"
-          onClick={() => cloturerMutation.mutate()}
-          disabled={!peutCloturer || cloturerMutation.isPending}
-        >
-          Clôturer les enrôlements
-        </button>
-        {!cloture && enrolees.length < MIN_EQUIPES_CLOTURE && (
-          <p>Au moins {MIN_EQUIPES_CLOTURE} équipes enrôlées sont requises pour clôturer.</p>
+        {!cloture && (
+          <>
+            <button
+              type="button"
+              onClick={() => cloturerMutation.mutate()}
+              disabled={!peutCloturer || cloturerMutation.isPending}
+            >
+              Clôturer les enrôlements
+            </button>
+            {enrolees.length < MIN_EQUIPES_CLOTURE && (
+              <p>Au moins {MIN_EQUIPES_CLOTURE} équipes enrôlées sont requises pour clôturer.</p>
+            )}
+            {cloturerMutation.isError && <p>{(cloturerMutation.error as Error).message}</p>}
+          </>
         )}
-        {cloturerMutation.isError && <p>{(cloturerMutation.error as Error).message}</p>}
+        {cloture && (
+          <>
+            <button
+              type="button"
+              onClick={() => decloturerMutation.mutate()}
+              disabled={decloturerMutation.isPending}
+            >
+              Décloturer les inscriptions
+            </button>
+            {decloturerMutation.isError && <p>{(decloturerMutation.error as Error).message}</p>}
+          </>
+        )}
       </section>
     </div>
   );

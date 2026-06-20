@@ -78,6 +78,38 @@
   background: #f8fafc;
 }
 
+/* Bouton "Plus" — surplus d'onglets au-delà de MAX_TOP_TABS, visible uniquement en desktop
+   (le hamburger simple tout à gauche reste réservé au menu mobile, cf. TopBar.tsx). */
+.app-topbar__more {
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+
+.app-topbar__more-icon {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+
+.app-topbar__more-icon span {
+  display: block;
+  height: 2px;
+  width: 1rem;
+  background: #f8fafc;
+}
+
+.app-topbar__more-label {
+  font-size: 0.85rem;
+}
+
 .app-tabs {
   display: flex;
   gap: 0.5rem;
@@ -196,7 +228,7 @@
     display: none;
   }
 
-  .app-topbar__hamburger--always {
+  .app-topbar__more {
     display: inline-flex;
   }
 

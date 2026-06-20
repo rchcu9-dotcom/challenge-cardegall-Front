@@ -54,4 +54,26 @@ describe('TopBar', () => {
 
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
+
+  // Bug : le hamburger simple (mobile) ne doit pas servir d'accès au surplus en desktop —
+  // un bouton "Plus" dédié, à droite des onglets, doit apparaître à la place quand il y a
+  // plus de MAX_TOP_TABS onglets visibles (cf. tabsConfig : 6 onglets pour un visiteur anonyme).
+  it('shows a dedicated "Plus" button when there are more than 3 visible tabs', () => {
+    renderTopBar();
+
+    expect(screen.getByRole('button', { name: "Plus d'options de navigation" })).toBeInTheDocument();
+  });
+
+  it('toggles the same navigation menu from the "Plus" button', () => {
+    renderTopBar();
+
+    const more = screen.getByRole('button', { name: "Plus d'options de navigation" });
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+    fireEvent.click(more);
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    fireEvent.click(more);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
 });

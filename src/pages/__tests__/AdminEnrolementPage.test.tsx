@@ -139,7 +139,12 @@ describe('AdminEnrolementPage', () => {
     expect(
       screen.queryByText('Au moins 2 équipes enrôlées sont requises pour clôturer.'),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Clôturer les enrôlements' })).toBeDisabled();
+    expect(
+      screen.queryByRole('button', { name: 'Clôturer les enrôlements' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Décloturer les inscriptions' }),
+    ).toBeEnabled();
   });
 
   it('affiche le message d’erreur quand la clôture échoue', async () => {
