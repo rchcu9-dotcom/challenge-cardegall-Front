@@ -1,0 +1,336 @@
+:root {
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+.page h1 {
+  margin-top: 0;
+}
+
+.page__card {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: #f8fafc;
+}
+
+.page__card h2 {
+  margin-top: 0;
+  font-size: 1.05rem;
+}
+
+.enrolement-attente {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.enrolement-attente__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+
+.enrolement-attente__nom {
+  font-weight: 600;
+  flex: 1;
+}
+
+.enrolement-attente__item label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.enrolement-attente__item input[type='number'] {
+  width: 4rem;
+}
+
+.enrolement-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.enrolement-list__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  cursor: grab;
+}
+
+.enrolement-list__ordre {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.enrolement-list__nom {
+  font-weight: 600;
+  flex: 1;
+}
+
+.enrolement-list__feminines {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.inscription-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 28rem;
+}
+
+.inscription-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.inscription-form input,
+.inscription-form textarea {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+
+.inscription-form button {
+  align-self: flex-start;
+}
+
+.inscription-form__error {
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+.link-secondary {
+  color: #475569;
+  text-decoration: underline;
+  font-size: 0.9rem;
+}
+
+.admin-equipes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.admin-equipes-table th,
+.admin-equipes-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-equipes-table th {
+  font-weight: 600;
+  color: #475569;
+}
+
+.admin-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.admin-users-table th,
+.admin-users-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-users-table th {
+  font-weight: 600;
+  color: #475569;
+}
+
+.admin-hub {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-hub__item {
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+
+.admin-hub__item a {
+  font-weight: 600;
+}
+
+.admin-hub__item p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.tour-matches-table,
+.tour-classement-table,
+.planning-matches-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tour-matches-table th,
+.tour-matches-table td,
+.tour-classement-table th,
+.tour-classement-table td,
+.planning-matches-table th,
+.planning-matches-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tour-matches-table th,
+.tour-classement-table th,
+.planning-matches-table th {
+  font-weight: 600;
+  color: #475569;
+}
+
+.tour-classement-table tr.is-equipe-selectionnee {
+  background: #fef3c7;
+  font-weight: 600;
+}
+
+.tour-matches-table__score-form {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.tour-matches-table__score-form input[type='number'] {
+  width: 3.5rem;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  font: inherit;
+}
+
+.resultats-filtre-equipe {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.resultats-filtre-equipe select {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+
+.tour-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.competition-equipes-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.competition-equipes-list li {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.bracket {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.bracket-round {
+  flex: 1;
+  min-width: 14rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bracket-round h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.bracket-match {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background: #ffffff;
+}
+
+.bracket-match h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.bracket-match p {
+  margin: 0.25rem 0;
+}
+
+.finale-score-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.finale-score-form input[type='number'] {
+  width: 4rem;
+  font: inherit;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}

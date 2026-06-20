@@ -1,0 +1,210 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: #0f172a;
+  color: #f8fafc;
+  border-bottom: 1px solid #1e293b;
+}
+
+.app-topbar__brand {
+  font-weight: 700;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.app-topbar__auth {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.app-topbar__auth a,
+.app-topbar__auth button {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.app-topbar__user {
+  color: #cbd5e1;
+}
+
+.login-page__google-button {
+  display: inline-block;
+  background: #2563eb;
+  color: #ffffff;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.app-topbar__hamburger {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.app-topbar__hamburger span {
+  display: block;
+  height: 2px;
+  width: 1.25rem;
+  background: #f8fafc;
+}
+
+.app-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.app-tabs--top {
+  display: none;
+}
+
+.app-tabs__link {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 0.9rem;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.app-tabs__link.is-active {
+  background: #1e293b;
+  color: #ffffff;
+  border-color: #334155;
+}
+
+.app-tabs--bottom {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 100;
+  justify-content: space-around;
+  padding: 0.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid #1e293b;
+}
+
+.app-tabs--bottom .app-tabs__link {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.app-hamburger-menu {
+  position: fixed;
+  top: 4rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  z-index: 110;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 0.75rem;
+  padding: 0.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.app-hamburger-menu__link {
+  display: block;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  color: #f8fafc;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.app-hamburger-menu__link.is-active {
+  background: #1e293b;
+}
+
+.app-layout__main {
+  flex: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+  padding-bottom: 5rem;
+  box-sizing: border-box;
+}
+
+.app-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.app-breadcrumbs__item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.app-breadcrumbs__link {
+  color: #475569;
+  text-decoration: none;
+}
+
+.app-breadcrumbs__link:hover {
+  text-decoration: underline;
+}
+
+.app-breadcrumbs__current {
+  color: #475569;
+}
+
+.app-breadcrumbs__separator {
+  color: #94a3b8;
+}
+
+@media (min-width: 768px) {
+  .app-topbar__hamburger {
+    display: none;
+  }
+
+  .app-tabs--top {
+    display: flex;
+  }
+
+  .app-tabs--bottom {
+    display: none;
+  }
+
+  .app-layout__main {
+    padding-bottom: 1rem;
+  }
+}
