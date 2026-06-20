@@ -1,0 +1,73 @@
+name: Frontend deploy (staging)
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+env:
+  # TODO: ressources Azure dédiées challenge-cardegall, à créer/confirmer avec Lionel
+  STORAGE_ACCOUNT: ${{ secrets.AZ_STORAGE_ACCOUNT_STAGING }}
+  STORAGE_KEY: ${{ secrets.AZ_STORAGE_KEY_STAGING }}
+  VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL_STAGING }}
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check required secrets
+        run: |
+          if [ -z "$STORAGE_ACCOUNT" ] || [ -z "$STORAGE_KEY" ] || [ -z "$VITE_API_BASE_URL" ]; then
+            echo "Missing STORAGE_ACCOUNT, STORAGE_KEY or VITE_API_BASE_URL secret";
+            exit 1;
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies (blocking on high/critical)
+        run: pnpm audit --prod --audit-level=high
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build (staging)
+        run: |
+          rm -f .env .env.local .env.production
+          echo "VITE_API_BASE_URL=$VITE_API_BASE_URL" > .env
+          pnpm build
+
+      - name: Generate SAS for $web (7 jours) et uploader via azcopy
+        run: |
+          curl -sL https://aka.ms/downloadazcopy-v10-linux -o azcopy.tgz
+          tar -xzf azcopy.tgz --strip-components=1 --wildcards '*/azcopy'
+          chmod +x azcopy
+
+          EXPIRY=$(date -u -d "+7 days" +"%Y-%m-%dT%H:%MZ")
+          SAS=$(az storage container generate-sas \
+            --account-name "$STORAGE_ACCOUNT" \
+            --account-key "$STORAGE_KEY" \
+            --name '$web' \
+            --permissions rwdl \
+            --expiry "$EXPIRY" \
+            --https-only -o tsv)
+          DEST="https://${STORAGE_ACCOUNT}.blob.core.windows.net/\$web?$SAS"
+          ./azcopy copy "dist/*" "$DEST" --recursive=true --overwrite=true

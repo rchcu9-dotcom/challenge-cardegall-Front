@@ -45,7 +45,7 @@ VITE_API_BASE_URL=http://localhost:3010
 | Environnement | URL |
 |---|---|
 | Local | http://localhost:5183 |
-| Staging | _à compléter une fois le déploiement effectué_ |
+| Staging | https://stcardegallstg.z6.web.core.windows.net/ |
 | Prod | _à compléter une fois le déploiement effectué_ |
 
 ## Branches

@@ -196,6 +196,10 @@
     display: none;
   }
 
+  .app-topbar__hamburger--always {
+    display: inline-flex;
+  }
+
   .app-tabs--top {
     display: flex;
   }

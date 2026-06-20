@@ -1,29 +1,19 @@
 import { NavLink } from 'react-router-dom';
-import { tabsConfig } from './tabsConfig';
-import { useAuth } from '../../auth/AuthContext';
-import { useEnrolementEtat } from '../../hooks/useEnrolementEtat';
+import { useVisibleTabs } from '../../hooks/useVisibleTabs';
 
 type Props = {
   variant: 'top' | 'bottom';
+  /** Limite le nombre d'onglets rendus (utilisé par TopBar pour basculer le surplus en hamburger). */
+  maxVisible?: number;
 };
 
-export function Tabs({ variant }: Props) {
-  const { user, loading } = useAuth();
-  const { cloture } = useEnrolementEtat();
-
-  const visibleTabs = tabsConfig.filter((tab) => {
-    if (tab.requiresAdmin) {
-      return !loading && user?.role === 'admin';
-    }
-    if (tab.id === 'inscription') {
-      return !cloture;
-    }
-    return true;
-  });
+export function Tabs({ variant, maxVisible }: Props) {
+  const visibleTabs = useVisibleTabs();
+  const tabsToRender = maxVisible != null ? visibleTabs.slice(0, maxVisible) : visibleTabs;
 
   return (
     <nav className={`app-tabs app-tabs--${variant}`} aria-label="Navigation principale">
-      {visibleTabs.map((tab) => (
+      {tabsToRender.map((tab) => (
         <NavLink
           key={tab.id}
           to={tab.path}
