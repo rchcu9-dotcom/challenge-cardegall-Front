@@ -7,6 +7,7 @@ import {
   enrolerEquipe,
   reordonnerEquipes,
   cloturerEnrolements,
+  decloturerEnrolements,
   type EquipeDto,
 } from '../equipe';
 
@@ -138,6 +139,19 @@ describe('api/equipe', () => {
     const result = await cloturerEnrolements();
 
     expect(fetchMock).toHaveBeenCalledWith('http://localhost:3010/equipes/cloturer-enrolements', {
+      method: 'POST',
+    });
+    expect(result).toEqual(body);
+  });
+
+  it('decloturerEnrolements envoie un POST sur /equipes/decloturer-enrolements', async () => {
+    const body = { equipes: [buildEquipe({ statut: 'enrolee' })], cloture: false as const };
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(body));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await decloturerEnrolements();
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3010/equipes/decloturer-enrolements', {
       method: 'POST',
     });
     expect(result).toEqual(body);

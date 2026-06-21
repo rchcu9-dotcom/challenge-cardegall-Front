@@ -14,6 +14,7 @@ vi.mock('../tabsConfig', () => ({
     { id: 'competition', label: 'Compétition', shortLabel: 'Compét.', path: '/competition' },
     { id: 'planning', label: 'Planning', shortLabel: 'Planning', path: '/planning' },
   ],
+  MAX_VISIBLE_TABS: 3,
 }));
 
 describe('TopBar — pas de surplus (<= MAX_TOP_TABS onglets)', () => {

@@ -7,6 +7,9 @@ export interface TabConfig {
   requiresAdmin?: boolean;
 }
 
+/** Nombre d'onglets affichés dans le bandeau (haut en desktop, bas en mobile) avant de basculer le surplus dans un menu hamburger. */
+export const MAX_VISIBLE_TABS = 3;
+
 export const tabsConfig: TabConfig[] = [
   { id: 'accueil', label: 'Accueil', shortLabel: 'Accueil', path: '/' },
   { id: 'competition', label: 'Compétition', shortLabel: 'Compét.', path: '/competition' },

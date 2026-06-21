@@ -57,6 +57,11 @@
   font-weight: 600;
 }
 
+.app-topbar__hamburger-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
 .app-topbar__hamburger {
   display: inline-flex;
   flex-direction: column;
@@ -78,10 +83,16 @@
   background: #f8fafc;
 }
 
-/* Bouton "Plus" — surplus d'onglets au-delà de MAX_TOP_TABS, visible uniquement en desktop
-   (le hamburger simple tout à gauche reste réservé au menu mobile, cf. TopBar.tsx). */
-.app-topbar__more {
+/* Bouton "Plus" — surplus d'onglets au-delà de MAX_VISIBLE_TABS, visible uniquement en desktop
+   (le hamburger simple tout à gauche reste réservé au menu mobile, cf. TopBar.tsx). Le wrapper
+   sert d'ancre de positionnement pour le menu déroulant (.app-hamburger-menu--anchored). */
+.app-topbar__more-wrapper {
+  position: relative;
   display: none;
+}
+
+.app-topbar__more {
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   border: 1px solid #334155;
@@ -180,6 +191,18 @@
   background: #1e293b;
 }
 
+/* Variante ancrée au bouton "Plus" (desktop) : remplace le positionnement plein écran
+   par défaut (réservé au menu mobile) par un menu aligné à gauche sous le bouton. */
+.app-hamburger-menu--anchored {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: auto;
+  bottom: auto;
+  width: max-content;
+  min-width: 12rem;
+}
+
 .app-layout__main {
   flex: 1;
   width: 100%;
@@ -224,11 +247,11 @@
 }
 
 @media (min-width: 768px) {
-  .app-topbar__hamburger {
+  .app-topbar__hamburger-wrapper {
     display: none;
   }
 
-  .app-topbar__more {
+  .app-topbar__more-wrapper {
     display: inline-flex;
   }
 

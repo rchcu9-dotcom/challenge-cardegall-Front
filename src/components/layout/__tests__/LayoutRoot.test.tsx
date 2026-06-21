@@ -37,6 +37,25 @@ describe('LayoutRoot', () => {
     expect(screen.getAllByRole('link', { name: 'Accueil' }).length).toBeGreaterThan(0);
   });
 
+  // Bug : le bandeau bas (mobile) n'était pas limité à 3 entrées comme le bandeau haut (desktop).
+  it('limits the bottom navigation to the first 3 tabs, the rest being reachable via the hamburger menu', () => {
+    const { container } = renderLayoutRoot();
+
+    const bottomNav = container.querySelector('.app-tabs--bottom');
+    expect(bottomNav).not.toBeNull();
+
+    expect(within(bottomNav as HTMLElement).getByRole('link', { name: 'Accueil' })).toBeInTheDocument();
+    expect(within(bottomNav as HTMLElement).getByRole('link', { name: 'Compét.' })).toBeInTheDocument();
+    expect(within(bottomNav as HTMLElement).getByRole('link', { name: 'Planning' })).toBeInTheDocument();
+    expect(
+      within(bottomNav as HTMLElement).queryByRole('link', { name: 'Résultats' }),
+    ).not.toBeInTheDocument();
+    expect(within(bottomNav as HTMLElement).queryByRole('link', { name: 'Finale' })).not.toBeInTheDocument();
+    expect(
+      within(bottomNav as HTMLElement).queryByRole('link', { name: 'Inscription' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('does not show a breadcrumb on the Accueil page', () => {
     renderLayoutRoot('/');
 

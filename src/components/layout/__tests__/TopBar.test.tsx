@@ -64,7 +64,7 @@ describe('TopBar', () => {
     expect(screen.getByRole('button', { name: "Plus d'options de navigation" })).toBeInTheDocument();
   });
 
-  it('toggles the same navigation menu from the "Plus" button', () => {
+  it('toggles a navigation menu from the "Plus" button', () => {
     renderTopBar();
 
     const more = screen.getByRole('button', { name: "Plus d'options de navigation" });
@@ -75,5 +75,55 @@ describe('TopBar', () => {
 
     fireEvent.click(more);
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
+  // Bug : le menu "Plus" répétait les 3 onglets déjà visibles dans le bandeau au lieu de
+  // n'afficher que le surplus.
+  it('the "Plus" menu only lists the tabs beyond the first 3 already shown in the top bar', () => {
+    renderTopBar();
+
+    fireEvent.click(screen.getByRole('button', { name: "Plus d'options de navigation" }));
+
+    expect(screen.queryByRole('menuitem', { name: 'Accueil' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Compétition' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Planning' })).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Résultats & classement' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Phase finale' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Inscription' })).toBeInTheDocument();
+  });
+
+  // Le hamburger mobile reste le menu de navigation complet (accès à tous les onglets, y
+  // compris ceux déjà visibles dans le bandeau), à la différence du bouton "Plus" desktop.
+  it('the hamburger menu lists every visible tab, including the ones shown in the top bar', () => {
+    renderTopBar();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }));
+
+    expect(screen.getByRole('menuitem', { name: 'Accueil' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Compétition' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Planning' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Résultats & classement' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Phase finale' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Inscription' })).toBeInTheDocument();
+  });
+
+  it('closes the "Plus" menu after selecting an item', () => {
+    renderTopBar();
+
+    fireEvent.click(screen.getByRole('button', { name: "Plus d'options de navigation" }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Phase finale' }));
+
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
+  it('opening the "Plus" menu closes the hamburger menu and vice versa', () => {
+    renderTopBar();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: "Plus d'options de navigation" }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Accueil' })).not.toBeInTheDocument();
   });
 });

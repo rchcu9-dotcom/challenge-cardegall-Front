@@ -38,6 +38,7 @@ describe('AdminEnrolementPage', () => {
     vi.mocked(equipeApi.enrolerEquipe).mockResolvedValue(buildEquipe({ statut: 'enrolee' }));
     vi.mocked(equipeApi.reordonnerEquipes).mockResolvedValue([]);
     vi.mocked(equipeApi.cloturerEnrolements).mockResolvedValue({ equipes: [], cloture: true });
+    vi.mocked(equipeApi.decloturerEnrolements).mockResolvedValue({ equipes: [], cloture: false });
   });
 
   it('affiche les équipes à enrôler avec le nombre de féminines envisagé pré-rempli', async () => {
@@ -145,6 +146,55 @@ describe('AdminEnrolementPage', () => {
     expect(
       screen.getByRole('button', { name: 'Décloturer les inscriptions' }),
     ).toBeEnabled();
+  });
+
+  it('le bouton "Décloturer les inscriptions" n’est pas affiché quand les enrôlements ne sont pas clôturés', async () => {
+    vi.mocked(equipeApi.listEnrolees).mockResolvedValue([
+      buildEquipe({ id: 'equipe-1', nom: 'DSI', statut: 'enrolee', nbFemininesReel: 3, ordreArrivee: 1 }),
+      buildEquipe({
+        id: 'equipe-2',
+        nom: 'Marketing',
+        statut: 'enrolee',
+        nbFemininesReel: 2,
+        ordreArrivee: 2,
+      }),
+    ]);
+
+    renderPage();
+
+    await screen.findByText('DSI');
+    expect(
+      screen.queryByRole('button', { name: 'Décloturer les inscriptions' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('le bouton "Décloturer les inscriptions" appelle decloturerEnrolements', async () => {
+    vi.mocked(equipeApi.getEnrolementEtat).mockResolvedValue({ cloture: true });
+
+    renderPage();
+
+    const button = await screen.findByRole('button', { name: 'Décloturer les inscriptions' });
+    fireEvent.click(button);
+
+    await vi.waitFor(() => {
+      expect(equipeApi.decloturerEnrolements).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('affiche le message d’erreur quand la décloture échoue', async () => {
+    vi.mocked(equipeApi.getEnrolementEtat).mockResolvedValue({ cloture: true });
+    vi.mocked(equipeApi.decloturerEnrolements).mockRejectedValue(
+      new Error('Impossible de décloturer : des résultats ont déjà été saisis'),
+    );
+
+    renderPage();
+
+    const button = await screen.findByRole('button', { name: 'Décloturer les inscriptions' });
+    fireEvent.click(button);
+
+    expect(
+      await screen.findByText('Impossible de décloturer : des résultats ont déjà été saisis'),
+    ).toBeInTheDocument();
   });
 
   it('affiche le message d’erreur quand la clôture échoue', async () => {
