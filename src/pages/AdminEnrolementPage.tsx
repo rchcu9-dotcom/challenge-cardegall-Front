@@ -139,11 +139,15 @@ export function AdminEnrolementPage() {
 
       <section className="page__card">
         <h2>Équipes enrôlées</h2>
-        <EnrolementList
-          equipes={enrolees}
-          onReorder={(orderedIds) => reordonnerMutation.mutate(orderedIds)}
-          disabled={cloture}
-        />
+        {enroleesQuery.isError ? (
+          <p>Impossible de charger les équipes enrôlées : {(enroleesQuery.error as Error).message}</p>
+        ) : (
+          <EnrolementList
+            equipes={enrolees}
+            onReorder={(orderedIds) => reordonnerMutation.mutate(orderedIds)}
+            disabled={cloture}
+          />
+        )}
       </section>
 
       <section className="page__card">
