@@ -105,12 +105,16 @@ export function InscriptionEquipePage() {
             <input
               type="email"
               required
+              aria-describedby="capitaine-email-hint"
               value={form.capitaineEmail}
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, capitaineEmail: event.target.value }))
               }
             />
           </label>
+          <p id="capitaine-email-hint" className="inscription-form__hint">
+            Une adresse @orange.com est obligatoire.
+          </p>
           {form.capitaineEmail !== '' && !emailValide && (
             <p className="inscription-form__error">
               L'adresse mail doit se terminer par @orange.com

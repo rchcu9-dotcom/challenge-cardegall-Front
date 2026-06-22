@@ -189,6 +189,12 @@ body {
   font-size: 0.9rem;
 }
 
+.inscription-form__hint {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin: -0.25rem 0 0;
+}
+
 .inscription-recap {
   display: grid;
   grid-template-columns: auto 1fr;
