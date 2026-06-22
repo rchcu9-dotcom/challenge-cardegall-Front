@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AdminEnrolementPage } from '../AdminEnrolementPage';
 import * as equipeApi from '../../api/equipe';
 import type { EquipeDto } from '../../api/equipe';
+import * as tourApi from '../../api/tour';
+import type { TourDto } from '../../api/tour';
 
 vi.mock('../../api/equipe');
+vi.mock('../../api/tour');
 
 function buildEquipe(overrides: Partial<EquipeDto> = {}): EquipeDto {
   return {
@@ -20,12 +24,30 @@ function buildEquipe(overrides: Partial<EquipeDto> = {}): EquipeDto {
   };
 }
 
+function buildTour(overrides: Partial<TourDto> = {}): TourDto {
+  return {
+    id: 'tour-1',
+    numero: 1,
+    statut: 'en_cours',
+    parametres: {
+      nomsTerrains: ['A', 'B'],
+      dureeMatchMinutes: 10,
+      latenceMinutes: 2,
+      delaiDemarrageMinutes: 3,
+    },
+    equipesBecot: [],
+    ...overrides,
+  };
+}
+
 function renderPage() {
   const queryClient = new QueryClient();
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <AdminEnrolementPage />
+      <MemoryRouter>
+        <AdminEnrolementPage />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }
@@ -39,6 +61,8 @@ describe('AdminEnrolementPage', () => {
     vi.mocked(equipeApi.reordonnerEquipes).mockResolvedValue([]);
     vi.mocked(equipeApi.cloturerEnrolements).mockResolvedValue({ equipes: [], cloture: true });
     vi.mocked(equipeApi.decloturerEnrolements).mockResolvedValue({ equipes: [], cloture: false });
+    vi.mocked(equipeApi.calculerPlanningProvisoire).mockResolvedValue(buildTour());
+    vi.mocked(tourApi.getTourCourant).mockRejectedValue(new Error('Aucun tour en cours'));
   });
 
   it('affiche les équipes à enrôler avec le nombre de féminines envisagé pré-rempli', async () => {
@@ -218,5 +242,140 @@ describe('AdminEnrolementPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Clôturer les enrôlements' }));
 
     expect(await screen.findByText('Au moins 2 équipes enrôlées sont requises')).toBeInTheDocument();
+  });
+
+  it('affiche le bouton "Calculer un planning provisoire" actif quand aucun Tour n\'existe et qu\'au moins 2 équipes sont enrôlées', async () => {
+    vi.mocked(equipeApi.listEnrolees).mockResolvedValue([
+      buildEquipe({ id: 'equipe-1', nom: 'DSI', statut: 'enrolee', nbFemininesReel: 3, ordreArrivee: 1 }),
+      buildEquipe({
+        id: 'equipe-2',
+        nom: 'Marketing',
+        statut: 'enrolee',
+        nbFemininesReel: 2,
+        ordreArrivee: 2,
+      }),
+    ]);
+
+    renderPage();
+
+    await screen.findByText('DSI');
+    expect(
+      screen.getByRole('button', { name: 'Calculer un planning provisoire' }),
+    ).toBeEnabled();
+  });
+
+  it('désactive le bouton "Calculer un planning provisoire" et affiche un message d’aide quand moins de 2 équipes sont enrôlées', async () => {
+    vi.mocked(equipeApi.listEnrolees).mockResolvedValue([
+      buildEquipe({ id: 'equipe-1', nom: 'DSI', statut: 'enrolee', nbFemininesReel: 3, ordreArrivee: 1 }),
+    ]);
+
+    renderPage();
+
+    await screen.findByText('DSI');
+    expect(
+      screen.getByRole('button', { name: 'Calculer un planning provisoire' }),
+    ).toBeDisabled();
+    expect(
+      screen.getByText(
+        'Au moins 2 équipes enrôlées sont requises pour calculer un planning provisoire.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('n’affiche pas le bouton "Calculer un planning provisoire" quand un Tour existe déjà', async () => {
+    vi.mocked(tourApi.getTourCourant).mockResolvedValue(buildTour());
+    vi.mocked(equipeApi.listEnrolees).mockResolvedValue([
+      buildEquipe({ id: 'equipe-1', nom: 'DSI', statut: 'enrolee', nbFemininesReel: 3, ordreArrivee: 1 }),
+      buildEquipe({
+        id: 'equipe-2',
+        nom: 'Marketing',
+        statut: 'enrolee',
+        nbFemininesReel: 2,
+        ordreArrivee: 2,
+      }),
+    ]);
+
+    renderPage();
+
+    await screen.findByText('DSI');
+    expect(
+      screen.queryByRole('button', { name: 'Calculer un planning provisoire' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('le clic sur "Calculer un planning provisoire" appelle calculerPlanningProvisoire et affiche une confirmation avec un lien vers le planning', async () => {
+    vi.mocked(equipeApi.listEnrolees).mockResolvedValue([
+      buildEquipe({ id: 'equipe-1', nom: 'DSI', statut: 'enrolee', nbFemininesReel: 3, ordreArrivee: 1 }),
+      buildEquipe({
+        id: 'equipe-2',
+        nom: 'Marketing',
+        statut: 'enrolee',
+        nbFemininesReel: 2,
+        ordreArrivee: 2,
+      }),
+    ]);
+
+    renderPage();
+
+    await screen.findByText('DSI');
+    fireEvent.click(screen.getByRole('button', { name: 'Calculer un planning provisoire' }));
+
+    await vi.waitFor(() => {
+      expect(equipeApi.calculerPlanningProvisoire).toHaveBeenCalledTimes(1);
+    });
+
+    expect(await screen.findByText(/Planning provisoire généré/)).toBeInTheDocument();
+    const lien = screen.getByRole('link', { name: 'Voir le planning' });
+    expect(lien).toHaveAttribute('href', '/admin/tour');
+  });
+
+  it('le bouton "Calculer un planning provisoire" se masque une fois le Tour créé (requête tour-courant invalidée)', async () => {
+    vi.mocked(equipeApi.listEnrolees).mockResolvedValue([
+      buildEquipe({ id: 'equipe-1', nom: 'DSI', statut: 'enrolee', nbFemininesReel: 3, ordreArrivee: 1 }),
+      buildEquipe({
+        id: 'equipe-2',
+        nom: 'Marketing',
+        statut: 'enrolee',
+        nbFemininesReel: 2,
+        ordreArrivee: 2,
+      }),
+    ]);
+
+    renderPage();
+
+    await screen.findByText('DSI');
+    vi.mocked(tourApi.getTourCourant).mockResolvedValue(buildTour());
+    fireEvent.click(screen.getByRole('button', { name: 'Calculer un planning provisoire' }));
+
+    await vi.waitFor(() => {
+      expect(
+        screen.queryByRole('button', { name: 'Calculer un planning provisoire' }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('affiche le message d’erreur quand le calcul du planning provisoire échoue (409, Tour déjà existant)', async () => {
+    vi.mocked(equipeApi.listEnrolees).mockResolvedValue([
+      buildEquipe({ id: 'equipe-1', nom: 'DSI', statut: 'enrolee', nbFemininesReel: 3, ordreArrivee: 1 }),
+      buildEquipe({
+        id: 'equipe-2',
+        nom: 'Marketing',
+        statut: 'enrolee',
+        nbFemininesReel: 2,
+        ordreArrivee: 2,
+      }),
+    ]);
+    vi.mocked(equipeApi.calculerPlanningProvisoire).mockRejectedValue(
+      new Error('Un planning a déjà été calculé pour le Tour n°1'),
+    );
+
+    renderPage();
+
+    await screen.findByText('DSI');
+    fireEvent.click(screen.getByRole('button', { name: 'Calculer un planning provisoire' }));
+
+    expect(
+      await screen.findByText('Un planning a déjà été calculé pour le Tour n°1'),
+    ).toBeInTheDocument();
   });
 });

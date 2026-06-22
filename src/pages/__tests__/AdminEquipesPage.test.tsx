@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AdminEquipesPage } from '../AdminEquipesPage';
 import * as equipeApi from '../../api/equipe';
@@ -57,6 +57,7 @@ describe('AdminEquipesPage', () => {
         id: 'equipe-2',
         nom: 'Marketing',
         capitaineUserId: 'demo-marketing',
+        capitaineEmail: 'capitaine.marketing@orange.com',
         nbJoueursApprox: 8,
         nbFemininesEnvisage: 2,
         statut: 'enrolee',
@@ -78,6 +79,7 @@ describe('AdminEquipesPage', () => {
 
     const rows = await screen.findAllByRole('row');
     expect(rows).toHaveLength(3);
+    expect(screen.getByRole('columnheader', { name: 'Email' })).toBeInTheDocument();
 
     expect(rows[1]).toHaveTextContent('DSI');
     expect(rows[1]).toHaveTextContent('demo-dsi');
@@ -87,6 +89,7 @@ describe('AdminEquipesPage', () => {
     expect(rows[1]).toHaveTextContent('Inscrite');
 
     expect(rows[2]).toHaveTextContent('Marketing');
+    expect(rows[2]).toHaveTextContent('capitaine.marketing@orange.com');
     expect(rows[2]).toHaveTextContent('Enrôlée');
   });
 
@@ -97,6 +100,16 @@ describe('AdminEquipesPage', () => {
 
     const rows = await screen.findAllByRole('row');
     expect(rows[1]).toHaveTextContent('—');
+  });
+
+  it('affiche un tiret dans la colonne Email pour une équipe sans email (équipe seedée)', async () => {
+    vi.mocked(equipeApi.listEquipes).mockResolvedValue([buildEquipe({ capitaineEmail: undefined })]);
+
+    renderPage();
+
+    const rows = await screen.findAllByRole('row');
+    const cells = within(rows[1]).getAllByRole('cell');
+    expect(cells[2]).toHaveTextContent('—');
   });
 
   it('affiche le pseudo du Capitaine dans la colonne "Capitaine" quand il est renseigné', async () => {

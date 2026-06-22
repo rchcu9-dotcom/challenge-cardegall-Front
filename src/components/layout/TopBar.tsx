@@ -2,18 +2,16 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Tabs } from './Tabs';
 import { HamburgerMenu } from './HamburgerMenu';
-import { MAX_VISIBLE_TABS } from './tabsConfig';
 import { useAuth } from '../../auth/AuthContext';
-import { useVisibleTabs } from '../../hooks/useVisibleTabs';
+import { useMenuTabs } from '../../hooks/useMenuTabs';
 
 type MenuMode = 'full' | 'overflow' | null;
 
 export function TopBar() {
   const [menuMode, setMenuMode] = useState<MenuMode>(null);
   const { user, loading, logout } = useAuth();
-  const visibleTabs = useVisibleTabs();
-  const hasOverflow = visibleTabs.length > MAX_VISIBLE_TABS;
-  const overflowTabs = hasOverflow ? visibleTabs.slice(MAX_VISIBLE_TABS) : [];
+  const { allTabs, secondaryTabs } = useMenuTabs();
+  const hasOverflow = secondaryTabs.length > 0;
 
   function toggleFullMenu() {
     setMenuMode((mode) => (mode === 'full' ? null : 'full'));
@@ -38,11 +36,11 @@ export function TopBar() {
           <span />
         </button>
         {menuMode === 'full' ? (
-          <HamburgerMenu tabs={visibleTabs} onNavigate={() => setMenuMode(null)} />
+          <HamburgerMenu tabs={allTabs} onNavigate={() => setMenuMode(null)} />
         ) : null}
       </div>
       <div className="app-topbar__brand">Challenge CardeGall</div>
-      <Tabs variant="top" maxVisible={hasOverflow ? MAX_VISIBLE_TABS : undefined} />
+      <Tabs variant="top" />
       {hasOverflow ? (
         <div className="app-topbar__more-wrapper">
           <button
@@ -61,7 +59,7 @@ export function TopBar() {
           </button>
           {menuMode === 'overflow' ? (
             <HamburgerMenu
-              tabs={overflowTabs}
+              tabs={secondaryTabs}
               onNavigate={() => setMenuMode(null)}
               className="app-hamburger-menu--anchored"
             />

@@ -27,10 +27,26 @@ function mockEnrolementEtat(cloture = false) {
 describe('Tabs', () => {
   beforeEach(() => {
     mockAuth();
-    mockEnrolementEtat(false);
   });
 
-  it('renders a link for each section and marks the current route as active', () => {
+  it('before clôture: renders Accueil, Compétition, Inscription and marks the active route', () => {
+    mockEnrolementEtat(false);
+
+    render(
+      <MemoryRouter initialEntries={['/competition']}>
+        <Tabs variant="top" />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Accueil' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Inscription' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Compétition' })).toHaveClass('is-active');
+    expect(screen.queryByRole('link', { name: 'Planning' })).not.toBeInTheDocument();
+  });
+
+  it('after clôture: renders Accueil, Planning, Résultats & classement and marks the active route', () => {
+    mockEnrolementEtat(true);
+
     render(
       <MemoryRouter initialEntries={['/planning']}>
         <Tabs variant="top" />
@@ -38,22 +54,26 @@ describe('Tabs', () => {
     );
 
     expect(screen.getByRole('link', { name: 'Accueil' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Inscription' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Résultats & classement' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Planning' })).toHaveClass('is-active');
+    expect(screen.queryByRole('link', { name: 'Inscription' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Compétition' })).not.toBeInTheDocument();
   });
 
   it('uses short labels for the bottom variant', () => {
+    mockEnrolementEtat(false);
+
     render(
       <MemoryRouter initialEntries={['/']}>
         <Tabs variant="bottom" />
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole('link', { name: 'Résultats' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Compét.' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Accueil' })).toHaveClass('is-active');
   });
 
-  it('points the Admin tab to the /admin hub when the user is admin', () => {
+  it('never renders the Admin tab, even for an admin user (Admin is never a primary tab)', () => {
     mockAuth({
       user: {
         id: 'user-1',
@@ -63,123 +83,6 @@ describe('Tabs', () => {
         role: 'admin',
       },
     });
-
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <Tabs variant="top" />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByRole('link', { name: 'Admin' })).toHaveAttribute('href', '/admin');
-  });
-
-  it('marks the Admin tab as active on /admin/equipes', () => {
-    mockAuth({
-      user: {
-        id: 'user-1',
-        providerId: 'admin@example.com',
-        provider: 'dev',
-        displayName: 'Admin',
-        role: 'admin',
-      },
-    });
-
-    render(
-      <MemoryRouter initialEntries={['/admin/equipes']}>
-        <Tabs variant="top" />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByRole('link', { name: 'Admin' })).toHaveClass('is-active');
-  });
-
-  it('marks the Admin tab as active on /admin/enrolement', () => {
-    mockAuth({
-      user: {
-        id: 'user-1',
-        providerId: 'admin@example.com',
-        provider: 'dev',
-        displayName: 'Admin',
-        role: 'admin',
-      },
-    });
-
-    render(
-      <MemoryRouter initialEntries={['/admin/enrolement']}>
-        <Tabs variant="top" />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByRole('link', { name: 'Admin' })).toHaveClass('is-active');
-  });
-
-  it('hides the Admin tab when the user is not connected', () => {
-    mockAuth({ user: null, loading: false });
-
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <Tabs variant="top" />
-      </MemoryRouter>,
-    );
-
-    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
-  });
-
-  it('hides the Admin tab while the auth state is loading, even for an eventual admin', () => {
-    mockAuth({
-      user: {
-        id: 'user-1',
-        providerId: 'admin@example.com',
-        provider: 'dev',
-        displayName: 'Admin',
-        role: 'admin',
-      },
-      loading: true,
-    });
-
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <Tabs variant="top" />
-      </MemoryRouter>,
-    );
-
-    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
-  });
-
-  it('hides the Admin tab when the connected user is not admin', () => {
-    mockAuth({
-      user: {
-        id: 'user-2',
-        providerId: 'capitaine@example.com',
-        provider: 'dev',
-        displayName: 'Capitaine',
-        role: 'capitaine',
-      },
-      loading: false,
-    });
-
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <Tabs variant="top" />
-      </MemoryRouter>,
-    );
-
-    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
-  });
-
-  it('hides the Inscription tab when the enrolements are clôturés', () => {
-    mockEnrolementEtat(true);
-
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <Tabs variant="top" />
-      </MemoryRouter>,
-    );
-
-    expect(screen.queryByRole('link', { name: 'Inscription' })).not.toBeInTheDocument();
-  });
-
-  it('shows the Inscription tab when the enrolements are not clôturés (fail-open)', () => {
     mockEnrolementEtat(false);
 
     render(
@@ -188,6 +91,6 @@ describe('Tabs', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole('link', { name: 'Inscription' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
   });
 });

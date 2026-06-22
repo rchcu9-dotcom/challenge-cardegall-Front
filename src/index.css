@@ -101,6 +101,62 @@ body {
   color: #475569;
 }
 
+.planning-board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.planning-board__terrain {
+  flex: 1 1 14rem;
+  min-width: 14rem;
+  min-height: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.5rem;
+  background: #f1f5f9;
+}
+
+.planning-board__terrain-nom {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.planning-board__terrain-vide {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.planning-board__match {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  cursor: grab;
+}
+
+.planning-board__match--fige {
+  cursor: default;
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+.planning-board__match-heure {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.planning-board__match-equipes {
+  font-size: 0.9rem;
+}
+
 .inscription-form {
   display: flex;
   flex-direction: column;
@@ -131,6 +187,21 @@ body {
 .inscription-form__error {
   color: #b91c1c;
   font-size: 0.9rem;
+}
+
+.inscription-recap {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  max-width: 28rem;
+}
+
+.inscription-recap dt {
+  font-weight: 600;
+}
+
+.inscription-recap dd {
+  margin: 0;
 }
 
 .link-secondary {

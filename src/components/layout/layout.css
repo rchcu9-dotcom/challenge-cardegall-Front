@@ -83,7 +83,7 @@
   background: #f8fafc;
 }
 
-/* Bouton "Plus" — surplus d'onglets au-delà de MAX_VISIBLE_TABS, visible uniquement en desktop
+/* Bouton "Plus" — items secondaires (cf. useMenuTabs), visible uniquement en desktop
    (le hamburger simple tout à gauche reste réservé au menu mobile, cf. TopBar.tsx). Le wrapper
    sert d'ancre de positionnement pour le menu déroulant (.app-hamburger-menu--anchored). */
 .app-topbar__more-wrapper {

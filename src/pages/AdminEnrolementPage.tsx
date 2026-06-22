@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { EnrolementList } from '../components/admin/EnrolementList';
 import {
+  calculerPlanningProvisoire,
   cloturerEnrolements,
   decloturerEnrolements,
   enrolerEquipe,
@@ -10,8 +12,10 @@ import {
   listEquipes,
   reordonnerEquipes,
 } from '../api/equipe';
+import { getTourCourant } from '../api/tour';
 
 const MIN_EQUIPES_CLOTURE = 2;
+const MIN_EQUIPES_PLANNING_PROVISOIRE = 2;
 
 export function AdminEnrolementPage() {
   const queryClient = useQueryClient();
@@ -32,10 +36,17 @@ export function AdminEnrolementPage() {
     queryFn: getEnrolementEtat,
   });
 
+  const tourCourantQuery = useQuery({
+    queryKey: ['tour-courant'],
+    queryFn: getTourCourant,
+    retry: false,
+  });
+
   function invalidateAll() {
     queryClient.invalidateQueries({ queryKey: ['equipes'] });
     queryClient.invalidateQueries({ queryKey: ['equipes-enrolees'] });
     queryClient.invalidateQueries({ queryKey: ['enrolement-etat'] });
+    queryClient.invalidateQueries({ queryKey: ['tour-courant'] });
   }
 
   const enrolerMutation = useMutation({
@@ -61,10 +72,18 @@ export function AdminEnrolementPage() {
     onSuccess: invalidateAll,
   });
 
+  const planningProvisoireMutation = useMutation({
+    mutationFn: calculerPlanningProvisoire,
+    onSuccess: invalidateAll,
+  });
+
   const aEnroler = (equipesQuery.data ?? []).filter((equipe) => equipe.statut === 'inscrite');
   const enrolees = enroleesQuery.data ?? [];
   const cloture = etatQuery.data?.cloture ?? false;
   const peutCloturer = !cloture && enrolees.length >= MIN_EQUIPES_CLOTURE;
+  const tourExiste = tourCourantQuery.isSuccess;
+  const peutCalculerPlanningProvisoire =
+    !tourExiste && enrolees.length >= MIN_EQUIPES_PLANNING_PROVISOIRE;
 
   return (
     <div className="page">
@@ -141,6 +160,36 @@ export function AdminEnrolementPage() {
               <p>Au moins {MIN_EQUIPES_CLOTURE} équipes enrôlées sont requises pour clôturer.</p>
             )}
             {cloturerMutation.isError && <p>{(cloturerMutation.error as Error).message}</p>}
+
+            {!tourExiste && (
+              <>
+                <button
+                  type="button"
+                  title="Calcule le planning provisoire avec les équipes déjà arrivées — les matchs démarreront immédiatement"
+                  onClick={() => planningProvisoireMutation.mutate()}
+                  disabled={!peutCalculerPlanningProvisoire || planningProvisoireMutation.isPending}
+                >
+                  Calculer un planning provisoire
+                </button>
+                {enrolees.length < MIN_EQUIPES_PLANNING_PROVISOIRE && (
+                  <p>
+                    Au moins {MIN_EQUIPES_PLANNING_PROVISOIRE} équipes enrôlées sont requises pour
+                    calculer un planning provisoire.
+                  </p>
+                )}
+                {planningProvisoireMutation.isError && (
+                  <p>{(planningProvisoireMutation.error as Error).message}</p>
+                )}
+              </>
+            )}
+            {planningProvisoireMutation.isSuccess && (
+              <p>
+                Planning provisoire généré.{' '}
+                <Link to="/admin/tour" className="link-secondary">
+                  Voir le planning
+                </Link>
+              </p>
+            )}
           </>
         )}
         {cloture && (

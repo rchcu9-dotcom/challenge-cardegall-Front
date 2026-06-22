@@ -1,4 +1,5 @@
 import { authFetch } from './authFetch';
+import type { TourDto } from './tour';
 
 declare const __APP_API_BASE_URL__: string | undefined;
 
@@ -12,6 +13,7 @@ export interface EquipeDto {
   nom: string;
   capitaineUserId: string;
   capitainePseudo?: string;
+  capitaineEmail?: string;
   nbJoueursApprox: number;
   nbFemininesEnvisage: number;
   commentaire?: string;
@@ -26,6 +28,7 @@ export interface InscrireEquipeDto {
   nom: string;
   capitaineUserId: string;
   capitainePseudo: string;
+  capitaineEmail: string;
   nbJoueursApprox: number;
   nbFemininesEnvisage: number;
   commentaire?: string;
@@ -114,4 +117,11 @@ export async function decloturerEnrolements(): Promise<DecloturationResultDto> {
     method: 'POST',
   });
   return handleResponse<DecloturationResultDto>(res);
+}
+
+export async function calculerPlanningProvisoire(): Promise<TourDto> {
+  const res = await authFetch(`${API_BASE_URL}/equipes/calculer-planning-provisoire`, {
+    method: 'POST',
+  });
+  return handleResponse<TourDto>(res);
 }

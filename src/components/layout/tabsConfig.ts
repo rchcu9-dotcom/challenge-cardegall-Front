@@ -7,8 +7,16 @@ export interface TabConfig {
   requiresAdmin?: boolean;
 }
 
-/** Nombre d'onglets affichés dans le bandeau (haut en desktop, bas en mobile) avant de basculer le surplus dans un menu hamburger. */
-export const MAX_VISIBLE_TABS = 3;
+/**
+ * Ids (dans l'ordre d'affichage) des items mis en avant dans le bandeau
+ * (haut en desktop, bas en mobile), selon l'état de clôture des enrôlements.
+ * Le reste des items visibles bascule dans le menu "Plus"/hamburger complet.
+ */
+export function getPrimaryTabIds(cloture: boolean): string[] {
+  return cloture
+    ? ['accueil', 'planning', 'resultats']
+    : ['accueil', 'competition', 'inscription'];
+}
 
 export const tabsConfig: TabConfig[] = [
   { id: 'accueil', label: 'Accueil', shortLabel: 'Accueil', path: '/' },

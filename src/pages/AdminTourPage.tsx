@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { PlanningBoard } from '../components/admin/PlanningBoard';
 import { listEquipes } from '../api/equipe';
 import {
   ActionFinTour,
@@ -8,8 +9,10 @@ import {
   enregistrerScoreMatch,
   getTourCourant,
   ParametresTour,
+  reorganiserPlanning,
   terminerTour,
   TerminerTourResultDto,
+  TerrainPlanningDto,
 } from '../api/tour';
 
 interface ParametresTourForm {
@@ -124,6 +127,13 @@ export function AdminTourPage() {
       enregistrerScoreMatch(matchId, scoreA, scoreB),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tour-courant'] });
+    },
+  });
+
+  const reorganiserPlanningMutation = useMutation({
+    mutationFn: reorganiserPlanning,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['tour-courant'], data);
     },
   });
 
@@ -270,6 +280,26 @@ export function AdminTourPage() {
           {enregistrerScoreMutation.isError && (
             <p className="inscription-form__error">
               {(enregistrerScoreMutation.error as Error).message}
+            </p>
+          )}
+        </section>
+      )}
+
+      {tour && tour.statut === 'en_cours' && !resultatFinTour && (
+        <section className="page__card">
+          <h2>Planning des terrains</h2>
+          <PlanningBoard
+            matches={matches}
+            parametresTour={tour.parametres}
+            nomEquipe={nomEquipe}
+            onReorganiser={(parTerrain: TerrainPlanningDto[]) =>
+              reorganiserPlanningMutation.mutate(parTerrain)
+            }
+            disabled={reorganiserPlanningMutation.isPending}
+          />
+          {reorganiserPlanningMutation.isError && (
+            <p className="inscription-form__error">
+              {(reorganiserPlanningMutation.error as Error).message}
             </p>
           )}
         </section>

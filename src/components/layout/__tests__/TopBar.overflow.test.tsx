@@ -2,39 +2,46 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TopBar } from '../TopBar';
 import { AuthProvider } from '../../../auth/AuthContext';
 import { useEnrolementEtat } from '../../../hooks/useEnrolementEtat';
 
-// Isolé dans son propre fichier car tabsConfig est mocké à un nombre de tabs <= MAX_TOP_TABS,
-// ce qui ne reflète pas la config réelle (6 tabs) utilisée par TopBar.test.tsx.
+// Isolé dans son propre fichier car tabsConfig est mocké à exactement les 3 items "primaires"
+// de l'état testé, ce qui ne reflète pas la config réelle (7 tabs) utilisée par TopBar.test.tsx.
 vi.mock('../../../hooks/useEnrolementEtat');
-vi.mock('../tabsConfig', () => ({
-  tabsConfig: [
-    { id: 'accueil', label: 'Accueil', shortLabel: 'Accueil', path: '/' },
-    { id: 'competition', label: 'Compétition', shortLabel: 'Compét.', path: '/competition' },
-    { id: 'planning', label: 'Planning', shortLabel: 'Planning', path: '/planning' },
-  ],
-  MAX_VISIBLE_TABS: 3,
-}));
+vi.mock(import('../tabsConfig'), async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    tabsConfig: [
+      { id: 'accueil', label: 'Accueil', shortLabel: 'Accueil', path: '/' },
+      { id: 'competition', label: 'Compétition', shortLabel: 'Compét.', path: '/competition' },
+      { id: 'inscription', label: 'Inscription', shortLabel: 'Inscription', path: '/inscription' },
+    ],
+  };
+});
 
-describe('TopBar — pas de surplus (<= MAX_TOP_TABS onglets)', () => {
+function renderTopBar() {
+  const queryClient = new QueryClient();
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <AuthProvider>
+          <TopBar />
+        </AuthProvider>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+describe('TopBar — aucun item secondaire (tabs visibles == tabs primaires)', () => {
   beforeEach(() => {
     vi.mocked(useEnrolementEtat).mockReturnValue({ cloture: false });
   });
 
-  it('does not show the "Plus" button when there are 3 or fewer visible tabs', async () => {
-    const { TopBar } = await import('../TopBar');
-    const queryClient = new QueryClient();
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <AuthProvider>
-            <TopBar />
-          </AuthProvider>
-        </MemoryRouter>
-      </QueryClientProvider>,
-    );
+  it('does not show the "Plus" button when every visible tab is already in the primary set', () => {
+    renderTopBar();
 
     expect(screen.queryByRole('button', { name: "Plus d'options de navigation" })).not.toBeInTheDocument();
   });

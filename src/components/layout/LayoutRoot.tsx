@@ -4,7 +4,6 @@ import { TopBar } from './TopBar';
 import { Tabs } from './Tabs';
 import { Breadcrumbs } from './Breadcrumbs';
 import { getBreadcrumbItems } from './breadcrumbsConfig';
-import { MAX_VISIBLE_TABS } from './tabsConfig';
 import './layout.css';
 
 type Props = {
@@ -22,7 +21,7 @@ export function LayoutRoot({ children }: Props) {
         <Breadcrumbs items={breadcrumbItems} />
         {children}
       </main>
-      <Tabs variant="bottom" maxVisible={MAX_VISIBLE_TABS} />
+      <Tabs variant="bottom" />
     </div>
   );
 }

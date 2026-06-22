@@ -77,19 +77,52 @@ describe('TopBar', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
-  // Bug : le menu "Plus" répétait les 3 onglets déjà visibles dans le bandeau au lieu de
-  // n'afficher que le surplus.
-  it('the "Plus" menu only lists the tabs beyond the first 3 already shown in the top bar', () => {
+  // Bug : le menu "Plus" répétait les onglets déjà visibles dans le bandeau au lieu de
+  // n'afficher que le surplus. Avant clôture, le bandeau met en avant Accueil/Compétition/
+  // Inscription : le menu "Plus" ne doit donc lister que le reste.
+  it('before clôture: the "Plus" menu only lists the tabs not already shown in the top bar', () => {
     renderTopBar();
 
     fireEvent.click(screen.getByRole('button', { name: "Plus d'options de navigation" }));
 
     expect(screen.queryByRole('menuitem', { name: 'Accueil' })).not.toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: 'Compétition' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: 'Planning' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Inscription' })).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Planning' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Résultats & classement' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Phase finale' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: 'Inscription' })).toBeInTheDocument();
+  });
+
+  // Après clôture, le bandeau bascule sur Accueil/Planning/Résultats & classement : le menu
+  // "Plus" doit alors lister Compétition et Phase finale (et plus du tout Inscription, masquée).
+  it('after clôture: the "Plus" menu only lists the tabs not already shown in the top bar', () => {
+    vi.mocked(useEnrolementEtat).mockReturnValue({ cloture: true });
+    renderTopBar();
+
+    fireEvent.click(screen.getByRole('button', { name: "Plus d'options de navigation" }));
+
+    expect(screen.queryByRole('menuitem', { name: 'Accueil' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Planning' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Résultats & classement' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Inscription' })).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Compétition' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Phase finale' })).toBeInTheDocument();
+  });
+
+  // Le bandeau lui-même doit refléter l'état de clôture (cf. spec) : ce test verrouille la
+  // bascule au niveau de TopBar, en plus de la couverture dédiée de `Tabs`.
+  it('after clôture: the top bar shows Accueil, Planning, Résultats & classement', () => {
+    vi.mocked(useEnrolementEtat).mockReturnValue({ cloture: true });
+    const { container } = renderTopBar();
+
+    const topNav = container.querySelector('.app-tabs--top');
+    expect(topNav).not.toBeNull();
+
+    expect(screen.getByRole('link', { name: 'Accueil' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Planning' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Résultats & classement' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Compétition' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Inscription' })).not.toBeInTheDocument();
   });
 
   // Le hamburger mobile reste le menu de navigation complet (accès à tous les onglets, y

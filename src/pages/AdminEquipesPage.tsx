@@ -27,6 +27,7 @@ export function AdminEquipesPage() {
               <tr>
                 <th>Nom</th>
                 <th>Capitaine</th>
+                <th>Email</th>
                 <th>Joueurs (approx.)</th>
                 <th>Féminines envisagées</th>
                 <th>Commentaire</th>
@@ -39,6 +40,7 @@ export function AdminEquipesPage() {
                 <tr key={equipe.id}>
                   <td>{equipe.nom}</td>
                   <td>{equipe.capitainePseudo ?? equipe.capitaineUserId}</td>
+                  <td>{equipe.capitaineEmail ?? '—'}</td>
                   <td>{equipe.nbJoueursApprox}</td>
                   <td>{equipe.nbFemininesEnvisage}</td>
                   <td>{equipe.commentaire ?? '—'}</td>

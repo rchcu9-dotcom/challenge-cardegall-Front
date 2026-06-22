@@ -1,19 +1,16 @@
 import { NavLink } from 'react-router-dom';
-import { useVisibleTabs } from '../../hooks/useVisibleTabs';
+import { useMenuTabs } from '../../hooks/useMenuTabs';
 
 type Props = {
   variant: 'top' | 'bottom';
-  /** Limite le nombre d'onglets rendus (utilisé par TopBar pour basculer le surplus en hamburger). */
-  maxVisible?: number;
 };
 
-export function Tabs({ variant, maxVisible }: Props) {
-  const visibleTabs = useVisibleTabs();
-  const tabsToRender = maxVisible != null ? visibleTabs.slice(0, maxVisible) : visibleTabs;
+export function Tabs({ variant }: Props) {
+  const { primaryTabs } = useMenuTabs();
 
   return (
     <nav className={`app-tabs app-tabs--${variant}`} aria-label="Navigation principale">
-      {tabsToRender.map((tab) => (
+      {primaryTabs.map((tab) => (
         <NavLink
           key={tab.id}
           to={tab.path}

@@ -38,7 +38,7 @@ describe('LayoutRoot', () => {
   });
 
   // Bug : le bandeau bas (mobile) n'était pas limité à 3 entrées comme le bandeau haut (desktop).
-  it('limits the bottom navigation to the first 3 tabs, the rest being reachable via the hamburger menu', () => {
+  it('before clôture: limits the bottom navigation to Accueil, Compét., Inscription', () => {
     const { container } = renderLayoutRoot();
 
     const bottomNav = container.querySelector('.app-tabs--bottom');
@@ -46,9 +46,30 @@ describe('LayoutRoot', () => {
 
     expect(within(bottomNav as HTMLElement).getByRole('link', { name: 'Accueil' })).toBeInTheDocument();
     expect(within(bottomNav as HTMLElement).getByRole('link', { name: 'Compét.' })).toBeInTheDocument();
-    expect(within(bottomNav as HTMLElement).getByRole('link', { name: 'Planning' })).toBeInTheDocument();
+    expect(within(bottomNav as HTMLElement).getByRole('link', { name: 'Inscription' })).toBeInTheDocument();
+    expect(
+      within(bottomNav as HTMLElement).queryByRole('link', { name: 'Planning' }),
+    ).not.toBeInTheDocument();
     expect(
       within(bottomNav as HTMLElement).queryByRole('link', { name: 'Résultats' }),
+    ).not.toBeInTheDocument();
+    expect(within(bottomNav as HTMLElement).queryByRole('link', { name: 'Finale' })).not.toBeInTheDocument();
+  });
+
+  // Une fois les enrôlements clôturés, le bandeau bas bascule sur Accueil/Planning/Résultats,
+  // et Inscription disparaît entièrement (comportement déjà existant, non régressé).
+  it('after clôture: limits the bottom navigation to Accueil, Planning, Résultats', () => {
+    vi.mocked(useEnrolementEtat).mockReturnValue({ cloture: true });
+    const { container } = renderLayoutRoot();
+
+    const bottomNav = container.querySelector('.app-tabs--bottom');
+    expect(bottomNav).not.toBeNull();
+
+    expect(within(bottomNav as HTMLElement).getByRole('link', { name: 'Accueil' })).toBeInTheDocument();
+    expect(within(bottomNav as HTMLElement).getByRole('link', { name: 'Planning' })).toBeInTheDocument();
+    expect(within(bottomNav as HTMLElement).getByRole('link', { name: 'Résultats' })).toBeInTheDocument();
+    expect(
+      within(bottomNav as HTMLElement).queryByRole('link', { name: 'Compét.' }),
     ).not.toBeInTheDocument();
     expect(within(bottomNav as HTMLElement).queryByRole('link', { name: 'Finale' })).not.toBeInTheDocument();
     expect(

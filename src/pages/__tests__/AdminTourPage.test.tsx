@@ -107,6 +107,7 @@ describe('AdminTourPage', () => {
     vi.mocked(tourApi.getTourCourant).mockReset();
     vi.mocked(tourApi.terminerTour).mockReset();
     vi.mocked(tourApi.enregistrerScoreMatch).mockReset();
+    vi.mocked(tourApi.reorganiserPlanning).mockReset();
 
     vi.mocked(equipeApi.listEquipes).mockResolvedValue([
       buildEquipe({ id: 'equipe-1', nom: 'DSI' }),
@@ -287,6 +288,110 @@ describe('AdminTourPage', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
       expect(await screen.findByText('Erreur 400')).toBeInTheDocument();
+    });
+  });
+
+  describe('Planning des terrains', () => {
+    it('affiche le plateau de planning pour un tour en_cours', async () => {
+      vi.mocked(tourApi.getTourCourant).mockResolvedValue(
+        buildTourCourant({
+          tour: buildTour({ statut: 'en_cours' }),
+          matches: [buildMatch({ id: 'match-1', terrain: 'A', statut: 'a_jouer' })],
+        }),
+      );
+
+      renderPage();
+
+      await screen.findByText('Tour n°1 — En cours');
+      expect(screen.getByText('Planning des terrains')).toBeInTheDocument();
+      expect(screen.getByText('Terrain A')).toBeInTheDocument();
+      expect(screen.getByText('Terrain B')).toBeInTheDocument();
+    });
+
+    it('ne montre pas le planning quand le tour est terminé', async () => {
+      vi.mocked(tourApi.getTourCourant).mockResolvedValue(
+        buildTourCourant({ tour: buildTour({ statut: 'termine' }) }),
+      );
+
+      renderPage();
+
+      await screen.findByText('Tour n°1 — Terminé');
+      expect(screen.queryByText('Planning des terrains')).not.toBeInTheDocument();
+    });
+
+    it('une réorganisation déclenche reorganiserPlanning et met à jour le cache avec la réponse (sans refetch)', async () => {
+      vi.mocked(tourApi.getTourCourant).mockResolvedValue(
+        buildTourCourant({
+          tour: buildTour({ statut: 'en_cours' }),
+          matches: [
+            buildMatch({ id: 'match-1', terrain: 'A', statut: 'a_jouer', heureDebutPrevue: '2026-06-21T08:03:00.000Z' }),
+            buildMatch({
+              id: 'match-2',
+              terrain: 'B',
+              statut: 'a_jouer',
+              heureDebutPrevue: '2026-06-21T08:03:00.000Z',
+              equipeAId: 'equipe-2',
+              equipeBId: 'equipe-1',
+            }),
+          ],
+        }),
+      );
+      vi.mocked(tourApi.reorganiserPlanning).mockResolvedValue(
+        buildTourCourant({
+          tour: buildTour({ statut: 'en_cours' }),
+          matches: [
+            buildMatch({ id: 'match-1', terrain: 'B', statut: 'a_jouer', heureDebutPrevue: '2026-06-21T08:20:00.000Z' }),
+            buildMatch({ id: 'match-2', terrain: 'B', statut: 'a_jouer', heureDebutPrevue: '2026-06-21T08:03:00.000Z' }),
+          ],
+        }),
+      );
+
+      renderPage();
+
+      await screen.findByText('Tour n°1 — En cours');
+      const itemMatch1 = screen.getByText('DSI – Marketing').closest('.planning-board__match') as HTMLElement;
+      const terrainB = screen.getByText('Terrain B').closest('.planning-board__terrain') as HTMLElement;
+
+      fireEvent.dragStart(itemMatch1);
+      fireEvent.dragOver(terrainB);
+      fireEvent.drop(terrainB);
+
+      await vi.waitFor(() => {
+        expect(tourApi.reorganiserPlanning).toHaveBeenCalled();
+      });
+      expect(vi.mocked(tourApi.reorganiserPlanning).mock.calls[0][0]).toEqual([
+        { terrain: 'A', matchIds: [] },
+        { terrain: 'B', matchIds: ['match-2', 'match-1'] },
+      ]);
+
+      // Le cache est mis à jour directement avec la réponse de la mutation (setQueryData),
+      // sans appel supplémentaire à getTourCourant.
+      expect(tourApi.getTourCourant).toHaveBeenCalledTimes(1);
+    });
+
+    it("affiche un message d'erreur si la réorganisation échoue", async () => {
+      vi.mocked(tourApi.getTourCourant).mockResolvedValue(
+        buildTourCourant({
+          tour: buildTour({ statut: 'en_cours' }),
+          matches: [
+            buildMatch({ id: 'match-1', terrain: 'A', statut: 'a_jouer' }),
+            buildMatch({ id: 'match-2', terrain: 'B', statut: 'a_jouer', equipeAId: 'equipe-2', equipeBId: 'equipe-1' }),
+          ],
+        }),
+      );
+      vi.mocked(tourApi.reorganiserPlanning).mockRejectedValue(new Error('Erreur 409'));
+
+      renderPage();
+
+      await screen.findByText('Tour n°1 — En cours');
+      const itemMatch1 = screen.getByText('DSI – Marketing').closest('.planning-board__match') as HTMLElement;
+      const terrainB = screen.getByText('Terrain B').closest('.planning-board__terrain') as HTMLElement;
+
+      fireEvent.dragStart(itemMatch1);
+      fireEvent.dragOver(terrainB);
+      fireEvent.drop(terrainB);
+
+      expect(await screen.findByText('Erreur 409')).toBeInTheDocument();
     });
   });
 

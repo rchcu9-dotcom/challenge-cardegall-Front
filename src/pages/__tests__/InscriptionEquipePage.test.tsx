@@ -13,6 +13,8 @@ function buildEquipe(overrides: Partial<EquipeDto> = {}): EquipeDto {
     id: 'equipe-7',
     nom: 'Logistique',
     capitaineUserId: 'demo-capitaine',
+    capitainePseudo: 'CapiLogistique',
+    capitaineEmail: 'capitaine.logistique@orange.com',
     nbJoueursApprox: 9,
     nbFemininesEnvisage: 2,
     statut: 'inscrite',
@@ -33,6 +35,20 @@ function renderPage() {
   );
 }
 
+const VALID_EMAIL = 'capitaine@orange.com';
+
+function fillRequiredFields(values: { nom?: string; capitainePseudo?: string; capitaineEmail?: string } = {}) {
+  fireEvent.change(screen.getByLabelText("Nom de l'équipe"), {
+    target: { value: values.nom ?? 'Logistique' },
+  });
+  fireEvent.change(screen.getByLabelText('Pseudo du Capitaine'), {
+    target: { value: values.capitainePseudo ?? 'CapiLogistique' },
+  });
+  fireEvent.change(screen.getByLabelText('Adresse mail du Capitaine'), {
+    target: { value: values.capitaineEmail ?? VALID_EMAIL },
+  });
+}
+
 describe('InscriptionEquipePage', () => {
   beforeEach(() => {
     vi.mocked(equipeApi.inscrireEquipe).mockReset().mockResolvedValue(buildEquipe());
@@ -44,6 +60,7 @@ describe('InscriptionEquipePage', () => {
     expect(screen.getByRole('heading', { name: "Inscription d'une équipe" })).toBeInTheDocument();
     expect(screen.getByLabelText("Nom de l'équipe")).toHaveValue('');
     expect(screen.getByLabelText('Pseudo du Capitaine')).toHaveValue('');
+    expect(screen.getByLabelText('Adresse mail du Capitaine')).toHaveValue('');
     expect(screen.getByLabelText('Nombre de joueurs (approximatif)')).toHaveValue(0);
     expect(screen.getByLabelText('Nombre de joueuses envisagées (féminines)')).toHaveValue(0);
     expect(screen.getByLabelText('Commentaire (optionnel)')).toHaveValue('');
@@ -62,13 +79,77 @@ describe('InscriptionEquipePage', () => {
     expect(pseudoIndex).toBe(nomIndex + 1);
   });
 
-  it('soumet le formulaire avec les valeurs saisies et le capitaineUserId du stub', async () => {
+  it('le champ "Adresse mail du Capitaine" est de type email, obligatoire, et positionné après "Pseudo du Capitaine"', () => {
     renderPage();
 
-    fireEvent.change(screen.getByLabelText("Nom de l'équipe"), { target: { value: 'Logistique' } });
-    fireEvent.change(screen.getByLabelText('Pseudo du Capitaine'), {
-      target: { value: 'CapiLogistique' },
+    const emailInput = screen.getByLabelText('Adresse mail du Capitaine');
+    expect(emailInput).toHaveAttribute('type', 'email');
+    expect(emailInput).toBeRequired();
+
+    const inputs = screen.getAllByRole('textbox');
+    const pseudoIndex = inputs.indexOf(screen.getByLabelText('Pseudo du Capitaine'));
+    const emailIndex = inputs.indexOf(emailInput);
+    expect(emailIndex).toBe(pseudoIndex + 1);
+  });
+
+  it('le bouton "Inscrire l\'équipe" est désactivé par défaut (email vide)', () => {
+    renderPage();
+
+    expect(screen.getByRole('button', { name: "Inscrire l'équipe" })).toBeDisabled();
+  });
+
+  it('le bouton reste désactivé et un message d’erreur s’affiche pour un email hors domaine orange.com', () => {
+    renderPage();
+
+    fireEvent.change(screen.getByLabelText('Adresse mail du Capitaine'), {
+      target: { value: 'capitaine@gmail.com' },
     });
+
+    expect(screen.getByRole('button', { name: "Inscrire l'équipe" })).toBeDisabled();
+    expect(screen.getByText(/doit se terminer par @orange\.com/i)).toBeInTheDocument();
+  });
+
+  it('le bouton reste désactivé pour un domaine piège contenant orange.com sans en être un sous-domaine', () => {
+    renderPage();
+
+    fireEvent.change(screen.getByLabelText('Adresse mail du Capitaine'), {
+      target: { value: 'capitaine@orange.com.faux-domaine.fr' },
+    });
+
+    expect(screen.getByRole('button', { name: "Inscrire l'équipe" })).toBeDisabled();
+  });
+
+  it('n’affiche aucun message d’erreur tant que le champ email est vide', () => {
+    renderPage();
+
+    expect(screen.queryByText(/doit se terminer par @orange\.com/i)).not.toBeInTheDocument();
+  });
+
+  it('le bouton devient actif dès que l’email saisi est conforme à orange.com (insensible à la casse)', () => {
+    renderPage();
+
+    fireEvent.change(screen.getByLabelText('Adresse mail du Capitaine'), {
+      target: { value: 'Capitaine@Orange.COM' },
+    });
+
+    expect(screen.getByRole('button', { name: "Inscrire l'équipe" })).not.toBeDisabled();
+    expect(screen.queryByText(/doit se terminer par @orange\.com/i)).not.toBeInTheDocument();
+  });
+
+  it('le bouton devient actif pour un sous-domaine de orange.com', () => {
+    renderPage();
+
+    fireEvent.change(screen.getByLabelText('Adresse mail du Capitaine'), {
+      target: { value: 'capitaine@si.orange.com' },
+    });
+
+    expect(screen.getByRole('button', { name: "Inscrire l'équipe" })).not.toBeDisabled();
+  });
+
+  it('soumet le formulaire avec les valeurs saisies, le capitaineUserId du stub et l’email', async () => {
+    renderPage();
+
+    fillRequiredFields();
     fireEvent.change(screen.getByLabelText('Nombre de joueurs (approximatif)'), {
       target: { value: '9' },
     });
@@ -87,6 +168,7 @@ describe('InscriptionEquipePage', () => {
           nom: 'Logistique',
           capitaineUserId: 'demo-capitaine',
           capitainePseudo: 'CapiLogistique',
+          capitaineEmail: VALID_EMAIL,
           nbJoueursApprox: 9,
           nbFemininesEnvisage: 2,
           commentaire: 'Présents dès 8h',
@@ -99,10 +181,7 @@ describe('InscriptionEquipePage', () => {
   it('envoie commentaire: undefined quand le champ commentaire est vide', async () => {
     renderPage();
 
-    fireEvent.change(screen.getByLabelText("Nom de l'équipe"), { target: { value: 'Logistique' } });
-    fireEvent.change(screen.getByLabelText('Pseudo du Capitaine'), {
-      target: { value: 'CapiLogistique' },
-    });
+    fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: "Inscrire l'équipe" }));
 
     await vi.waitFor(() => {
@@ -113,32 +192,85 @@ describe('InscriptionEquipePage', () => {
     });
   });
 
-  it('affiche une confirmation après succès et permet d’inscrire une autre équipe', async () => {
+  it('affiche le message de confirmation après succès et ne propose plus de bouton "Inscrire une autre équipe"', async () => {
     renderPage();
 
-    fireEvent.change(screen.getByLabelText("Nom de l'équipe"), { target: { value: 'Logistique' } });
-    fireEvent.change(screen.getByLabelText('Pseudo du Capitaine'), {
-      target: { value: 'CapiLogistique' },
-    });
+    fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: "Inscrire l'équipe" }));
 
     expect(await screen.findByText('Équipe « Logistique » inscrite avec succès.')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Inscrire une autre équipe' }),
+    ).not.toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Inscrire une autre équipe' }));
+  it('affiche un récapitulatif avec les valeurs soumises (nom, pseudo, email, effectifs), distinctes des valeurs par défaut du formulaire', async () => {
+    vi.mocked(equipeApi.inscrireEquipe).mockResolvedValue(
+      buildEquipe({
+        nom: 'Support Premium',
+        capitainePseudo: 'CapiSupportPremium',
+        capitaineEmail: 'capitaine.support@orange.com',
+        nbJoueursApprox: 11,
+        nbFemininesEnvisage: 4,
+      }),
+    );
 
-    expect(screen.getByLabelText("Nom de l'équipe")).toHaveValue('');
-    expect(screen.getByLabelText('Pseudo du Capitaine')).toHaveValue('');
-    expect(screen.getByLabelText('Nombre de joueurs (approximatif)')).toHaveValue(0);
-    expect(screen.getByRole('button', { name: "Inscrire l'équipe" })).toBeInTheDocument();
+    renderPage();
+
+    fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: "Inscrire l'équipe" }));
+
+    await screen.findByText('Équipe « Support Premium » inscrite avec succès.');
+
+    expect(screen.getByText("Nom de l'équipe").nextElementSibling).toHaveTextContent('Support Premium');
+    expect(screen.getByText('Pseudo du Capitaine').nextElementSibling).toHaveTextContent(
+      'CapiSupportPremium',
+    );
+    expect(screen.getByText('Adresse mail du Capitaine').nextElementSibling).toHaveTextContent(
+      'capitaine.support@orange.com',
+    );
+    expect(
+      screen.getByText('Nombre de joueurs (approximatif)').nextElementSibling,
+    ).toHaveTextContent('11');
+    expect(
+      screen.getByText('Nombre de joueuses envisagées (féminines)').nextElementSibling,
+    ).toHaveTextContent('4');
+  });
+
+  it('affiche la ligne "Commentaire" dans le récapitulatif quand un commentaire a été saisi', async () => {
+    vi.mocked(equipeApi.inscrireEquipe).mockResolvedValue(
+      buildEquipe({ commentaire: 'Arrivée prévue à 8h' }),
+    );
+
+    renderPage();
+
+    fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: "Inscrire l'équipe" }));
+
+    await screen.findByText('Équipe « Logistique » inscrite avec succès.');
+
+    expect(screen.getByText('Commentaire').nextElementSibling).toHaveTextContent(
+      'Arrivée prévue à 8h',
+    );
+  });
+
+  it('n’affiche aucune ligne "Commentaire" dans le récapitulatif quand aucun commentaire n’a été saisi', async () => {
+    vi.mocked(equipeApi.inscrireEquipe).mockResolvedValue(buildEquipe({ commentaire: undefined }));
+
+    renderPage();
+
+    fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: "Inscrire l'équipe" }));
+
+    await screen.findByText('Équipe « Logistique » inscrite avec succès.');
+
+    expect(screen.queryByText('Commentaire')).not.toBeInTheDocument();
   });
 
   it('affiche un lien vers les équipes inscrites sur l’écran de confirmation', async () => {
     renderPage();
 
-    fireEvent.change(screen.getByLabelText("Nom de l'équipe"), { target: { value: 'Logistique' } });
-    fireEvent.change(screen.getByLabelText('Pseudo du Capitaine'), {
-      target: { value: 'CapiLogistique' },
-    });
+    fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: "Inscrire l'équipe" }));
 
     expect(await screen.findByText('Équipe « Logistique » inscrite avec succès.')).toBeInTheDocument();
@@ -152,10 +284,7 @@ describe('InscriptionEquipePage', () => {
 
     renderPage();
 
-    fireEvent.change(screen.getByLabelText("Nom de l'équipe"), { target: { value: 'Logistique' } });
-    fireEvent.change(screen.getByLabelText('Pseudo du Capitaine'), {
-      target: { value: 'CapiLogistique' },
-    });
+    fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: "Inscrire l'équipe" }));
 
     expect(await screen.findByText('Erreur 400')).toBeInTheDocument();
@@ -174,10 +303,7 @@ describe('InscriptionEquipePage', () => {
       </QueryClientProvider>,
     );
 
-    fireEvent.change(screen.getByLabelText("Nom de l'équipe"), { target: { value: 'Logistique' } });
-    fireEvent.change(screen.getByLabelText('Pseudo du Capitaine'), {
-      target: { value: 'CapiLogistique' },
-    });
+    fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: "Inscrire l'équipe" }));
 
     await vi.waitFor(() => {

@@ -63,6 +63,11 @@ export type TerminerTourResultDto =
   | { action: 'nouveau_tour'; tour: TourDto; matches: MatchDto[] }
   | { action: 'phase_finale'; classementFinal: ClassementEntryDto[]; phaseFinaleDemarree: boolean };
 
+export interface TerrainPlanningDto {
+  terrain: string;
+  matchIds: string[];
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => null);
@@ -100,6 +105,17 @@ export async function enregistrerScoreMatch(
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ scoreA, scoreB }),
+  });
+  return handleResponse<TourCourantDto>(res);
+}
+
+export async function reorganiserPlanning(
+  parTerrain: TerrainPlanningDto[],
+): Promise<TourCourantDto> {
+  const res = await authFetch(`${API_BASE_URL}/tours/courant/planning`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ parTerrain }),
   });
   return handleResponse<TourCourantDto>(res);
 }
