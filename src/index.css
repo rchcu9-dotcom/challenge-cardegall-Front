@@ -277,6 +277,10 @@ body {
   color: #475569;
 }
 
+.table-scroll {
+  overflow-x: auto;
+}
+
 .tour-matches-table,
 .tour-classement-table,
 .planning-matches-table {

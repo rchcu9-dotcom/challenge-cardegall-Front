@@ -74,39 +74,41 @@ export function ResultatsClassementPage() {
           classement.length === 0 ? (
             <p>Aucune donnée de classement.</p>
           ) : (
-            <table className="tour-classement-table">
-              <thead>
-                <tr>
-                  <th>Rang</th>
-                  <th>Équipe</th>
-                  <th>Pts</th>
-                  <th>V</th>
-                  <th>N</th>
-                  <th>D</th>
-                  <th>Buts marqués</th>
-                  <th>Buts concédés</th>
-                  <th>Diff.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {classement.map((entry) => (
-                  <tr
-                    key={entry.equipeId}
-                    className={entry.equipeId === selectedEquipeId ? 'is-equipe-selectionnee' : undefined}
-                  >
-                    <td>{entry.rang}</td>
-                    <td>{nomEquipe(entry.equipeId)}</td>
-                    <td>{entry.points}</td>
-                    <td>{entry.victoires}</td>
-                    <td>{entry.nuls}</td>
-                    <td>{entry.defaites}</td>
-                    <td>{entry.butsMarques}</td>
-                    <td>{entry.butsConcedes}</td>
-                    <td>{entry.diffGenerale}</td>
+            <div className="table-scroll">
+              <table className="tour-classement-table">
+                <thead>
+                  <tr>
+                    <th>Rang</th>
+                    <th>Équipe</th>
+                    <th>Pts</th>
+                    <th>V</th>
+                    <th>N</th>
+                    <th>D</th>
+                    <th>Buts marqués</th>
+                    <th>Buts concédés</th>
+                    <th>Diff.</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {classement.map((entry) => (
+                    <tr
+                      key={entry.equipeId}
+                      className={entry.equipeId === selectedEquipeId ? 'is-equipe-selectionnee' : undefined}
+                    >
+                      <td>{entry.rang}</td>
+                      <td>{nomEquipe(entry.equipeId)}</td>
+                      <td>{entry.points}</td>
+                      <td>{entry.victoires}</td>
+                      <td>{entry.nuls}</td>
+                      <td>{entry.defaites}</td>
+                      <td>{entry.butsMarques}</td>
+                      <td>{entry.butsConcedes}</td>
+                      <td>{entry.diffGenerale}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )
         )}
       </section>

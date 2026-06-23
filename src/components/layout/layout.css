@@ -21,7 +21,10 @@
   font-weight: 700;
   font-size: 1.1rem;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   flex: 1;
+  min-width: 0;
 }
 
 .app-topbar__auth {
@@ -30,6 +33,7 @@
   gap: 0.5rem;
   font-size: 0.85rem;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .app-topbar__auth a,
