@@ -29,7 +29,7 @@ export function ResultatsClassementPage() {
   };
 
   const classement = tourCourantQuery.data?.classement ?? [];
-  const matchesTermines = (tourCourantQuery.data?.matches ?? []).filter(
+  const matchesTermines = (tourCourantQuery.data?.tousLesMatchs ?? []).filter(
     (match) => match.statut === 'termine',
   );
   const resultatsFiltres = selectedEquipeId

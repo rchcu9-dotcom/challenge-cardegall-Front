@@ -77,6 +77,7 @@ function buildTourCourant(overrides: Partial<TourCourantDto> = {}): TourCourantD
   return {
     tour: buildTour(),
     matches: [],
+    tousLesMatchs: overrides.matches ?? [],
     classement: [],
     resultatsComplets: false,
     ...overrides,

@@ -55,6 +55,7 @@ export interface ClassementEntryDto {
 export interface TourCourantDto {
   tour: TourDto;
   matches: MatchDto[];
+  tousLesMatchs: MatchDto[];
   classement: ClassementEntryDto[];
   resultatsComplets: boolean;
 }

@@ -28,6 +28,7 @@ function buildMatch(overrides: Partial<MatchDto> = {}): MatchDto {
 
 function buildTourCourant(overrides: Partial<TourCourantDto> = {}): TourCourantDto {
   return {
+    tousLesMatchs: overrides.matches ?? [],
     tour: {
       id: 'tour-1',
       numero: 1,

@@ -79,6 +79,7 @@ function buildTourCourant(overrides: Partial<TourCourantDto> = {}): TourCourantD
   return {
     tour: buildTour(),
     matches: [],
+    tousLesMatchs: overrides.matches ?? [],
     classement: [],
     resultatsComplets: false,
     ...overrides,
@@ -431,6 +432,43 @@ describe('ResultatsClassementPage', () => {
 
       const secondRowCells = within(rows[2]).getAllByRole('cell').map((td) => td.textContent);
       expect(secondRowCells).toEqual(['Finance', 'Becot', '—']);
+    });
+
+    it('affiche les résultats des tours précédents, pas seulement ceux du tour en cours', async () => {
+      vi.mocked(equipeApi.listEquipes).mockResolvedValue([
+        buildEquipe({ id: 'equipe-1', nom: 'DSI' }),
+        buildEquipe({ id: 'equipe-2', nom: 'Marketing' }),
+        buildEquipe({ id: 'equipe-3', nom: 'Finance' }),
+      ]);
+      vi.mocked(classementApi.getTourCourant).mockResolvedValue(
+        buildTourCourant({
+          // Tour courant (tour-2) : un seul match, pas encore joué.
+          matches: [buildMatch({ id: 'match-2', tourId: 'tour-2', statut: 'a_jouer' })],
+          // Tous les matchs du tournoi : inclut un match terminé du tour précédent (tour-1).
+          tousLesMatchs: [
+            buildMatch({
+              id: 'match-1',
+              tourId: 'tour-1',
+              equipeAId: 'equipe-1',
+              equipeBId: 'equipe-3',
+              scoreA: 4,
+              scoreB: 0,
+              statut: 'termine',
+            }),
+            buildMatch({ id: 'match-2', tourId: 'tour-2', statut: 'a_jouer' }),
+          ],
+        }),
+      );
+
+      renderPage();
+
+      const table = (await within(getSection('Résultats')).findByRole('table')) as HTMLElement;
+      const rows = within(table).getAllByRole('row');
+
+      // 1 ligne d'en-tête + le match terminé du tour précédent.
+      expect(rows).toHaveLength(2);
+      const cells = within(rows[1]).getAllByRole('cell').map((td) => td.textContent);
+      expect(cells).toEqual(['DSI', 'Finance', '4 - 0']);
     });
 
     it("filtre les résultats sur l'équipe sélectionnée", async () => {
