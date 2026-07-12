@@ -46,7 +46,7 @@ VITE_API_BASE_URL=http://localhost:3010
 |---|---|
 | Local | http://localhost:5183 |
 | Staging | https://stcardegallstg.z6.web.core.windows.net/ |
-| Prod | _à compléter une fois le déploiement effectué_ |
+| Prod | https://challenge-cardegall.web.app |
 
 ## Branches
 
