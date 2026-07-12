@@ -65,5 +65,4 @@ jobs:
       - name: Deploy to Firebase Hosting
         run: |
           npm install -g firebase-tools
-          # TODO: remplacer par le projet Firebase challenge-cardegall une fois créé
-          firebase deploy --project challenge-cardegall-xxxx --only hosting
+          firebase deploy --project challenge-cardegall --only hosting
