@@ -129,7 +129,7 @@ describe('front/.github/workflows/deploy-prod.yml', () => {
     expect(buildIndex).toBeGreaterThan(-1);
     expect(authIndex).toBeGreaterThan(buildIndex);
     expect(deployIndex).toBeGreaterThan(authIndex);
-    expect(workflow).toMatch(/firebase deploy --project challenge-cardegall-xxxx --only hosting/);
+    expect(workflow).toMatch(/firebase deploy --project challenge-cardegall --only hosting/);
   });
 });
 
