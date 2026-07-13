@@ -145,36 +145,38 @@ export function AdminTourPage() {
 
   function renderClassementTable(entries: ClassementEntryDto[]) {
     return (
-      <table className="tour-classement-table">
-        <thead>
-          <tr>
-            <th>Rang</th>
-            <th>Équipe</th>
-            <th>Pts</th>
-            <th>V</th>
-            <th>N</th>
-            <th>D</th>
-            <th>Buts marqués</th>
-            <th>Buts concédés</th>
-            <th>Diff.</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((entry) => (
-            <tr key={entry.equipeId}>
-              <td>{entry.rang}</td>
-              <td>{nomEquipe(entry.equipeId)}</td>
-              <td>{entry.points}</td>
-              <td>{entry.victoires}</td>
-              <td>{entry.nuls}</td>
-              <td>{entry.defaites}</td>
-              <td>{entry.butsMarques}</td>
-              <td>{entry.butsConcedes}</td>
-              <td>{entry.diffGenerale}</td>
+      <div className="table-scroll">
+        <table className="tour-classement-table">
+          <thead>
+            <tr>
+              <th>Rang</th>
+              <th>Équipe</th>
+              <th>Pts</th>
+              <th>V</th>
+              <th>N</th>
+              <th>D</th>
+              <th>Buts marqués</th>
+              <th>Buts concédés</th>
+              <th>Diff.</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {entries.map((entry) => (
+              <tr key={entry.equipeId}>
+                <td>{entry.rang}</td>
+                <td>{nomEquipe(entry.equipeId)}</td>
+                <td>{entry.points}</td>
+                <td>{entry.victoires}</td>
+                <td>{entry.nuls}</td>
+                <td>{entry.defaites}</td>
+                <td>{entry.butsMarques}</td>
+                <td>{entry.butsConcedes}</td>
+                <td>{entry.diffGenerale}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
   }
 
@@ -203,79 +205,81 @@ export function AdminTourPage() {
           {matches.length === 0 ? (
             <p>Aucun match pour ce tour.</p>
           ) : (
-            <table className="tour-matches-table">
-              <thead>
-                <tr>
-                  <th>Équipe A</th>
-                  <th>Équipe B</th>
-                  <th>Score</th>
-                  <th>Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-                {matches.map((match) => {
-                  const input = scoreInputs[match.id] ?? { scoreA: '', scoreB: '' };
-                  const scoreAValide = input.scoreA !== '' && !Number.isNaN(Number(input.scoreA));
-                  const scoreBValide = input.scoreB !== '' && !Number.isNaN(Number(input.scoreB));
+            <div className="table-scroll">
+              <table className="tour-matches-table">
+                <thead>
+                  <tr>
+                    <th>Équipe A</th>
+                    <th>Équipe B</th>
+                    <th>Score</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {matches.map((match) => {
+                    const input = scoreInputs[match.id] ?? { scoreA: '', scoreB: '' };
+                    const scoreAValide = input.scoreA !== '' && !Number.isNaN(Number(input.scoreA));
+                    const scoreBValide = input.scoreB !== '' && !Number.isNaN(Number(input.scoreB));
 
-                  return (
-                    <tr key={match.id}>
-                      <td>{nomEquipe(match.equipeAId)}</td>
-                      <td>{match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}</td>
-                      <td>
-                        {match.estBye ? (
-                          '—'
-                        ) : (
-                          <div className="tour-matches-table__score-form">
-                            <input
-                              type="number"
-                              min={0}
-                              aria-label={`Score ${nomEquipe(match.equipeAId)}`}
-                              value={input.scoreA}
-                              onChange={(e) =>
-                                setScoreInputs({
-                                  ...scoreInputs,
-                                  [match.id]: { ...input, scoreA: e.target.value },
-                                })
-                              }
-                            />
-                            <span>-</span>
-                            <input
-                              type="number"
-                              min={0}
-                              aria-label={`Score ${nomEquipe(match.equipeBId)}`}
-                              value={input.scoreB}
-                              onChange={(e) =>
-                                setScoreInputs({
-                                  ...scoreInputs,
-                                  [match.id]: { ...input, scoreB: e.target.value },
-                                })
-                              }
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                enregistrerScoreMutation.mutate({
-                                  matchId: match.id,
-                                  scoreA: Number(input.scoreA),
-                                  scoreB: Number(input.scoreB),
-                                })
-                              }
-                              disabled={
-                                !scoreAValide || !scoreBValide || enregistrerScoreMutation.isPending
-                              }
-                            >
-                              Enregistrer
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                      <td>{STATUT_MATCH_LABELS[match.statut] ?? match.statut}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={match.id}>
+                        <td>{nomEquipe(match.equipeAId)}</td>
+                        <td>{match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}</td>
+                        <td>
+                          {match.estBye ? (
+                            '—'
+                          ) : (
+                            <div className="tour-matches-table__score-form">
+                              <input
+                                type="number"
+                                min={0}
+                                aria-label={`Score ${nomEquipe(match.equipeAId)}`}
+                                value={input.scoreA}
+                                onChange={(e) =>
+                                  setScoreInputs({
+                                    ...scoreInputs,
+                                    [match.id]: { ...input, scoreA: e.target.value },
+                                  })
+                                }
+                              />
+                              <span>-</span>
+                              <input
+                                type="number"
+                                min={0}
+                                aria-label={`Score ${nomEquipe(match.equipeBId)}`}
+                                value={input.scoreB}
+                                onChange={(e) =>
+                                  setScoreInputs({
+                                    ...scoreInputs,
+                                    [match.id]: { ...input, scoreB: e.target.value },
+                                  })
+                                }
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  enregistrerScoreMutation.mutate({
+                                    matchId: match.id,
+                                    scoreA: Number(input.scoreA),
+                                    scoreB: Number(input.scoreB),
+                                  })
+                                }
+                                disabled={
+                                  !scoreAValide || !scoreBValide || enregistrerScoreMutation.isPending
+                                }
+                              >
+                                Enregistrer
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                        <td>{STATUT_MATCH_LABELS[match.statut] ?? match.statut}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
           {enregistrerScoreMutation.isError && (
             <p className="inscription-form__error">

@@ -10,7 +10,6 @@ import { AdminPage } from './pages/AdminPage';
 import { AdminEquipesPage } from './pages/AdminEquipesPage';
 import { AdminTourPage } from './pages/AdminTourPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
-import { PhaseFinalePage } from './pages/PhaseFinalePage';
 import { AdminFinalePage } from './pages/AdminFinalePage';
 import { LoginPage } from './pages/LoginPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
@@ -23,7 +22,6 @@ export default function App() {
         <Route path="/competition" element={<CompetitionPage />} />
         <Route path="/planning" element={<PlanningPage />} />
         <Route path="/resultats" element={<ResultatsClassementPage />} />
-        <Route path="/finale" element={<PhaseFinalePage />} />
         <Route path="/inscription" element={<InscriptionEquipePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />

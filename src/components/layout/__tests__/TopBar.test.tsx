@@ -90,7 +90,6 @@ describe('TopBar', () => {
     expect(screen.queryByRole('menuitem', { name: 'Inscription' })).not.toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Planning' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Résultats & classement' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: 'Phase finale' })).toBeInTheDocument();
   });
 
   // Après clôture, le bandeau bascule sur Accueil/Planning/Résultats & classement : le menu
@@ -106,7 +105,6 @@ describe('TopBar', () => {
     expect(screen.queryByRole('menuitem', { name: 'Résultats & classement' })).not.toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: 'Inscription' })).not.toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Compétition' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: 'Phase finale' })).toBeInTheDocument();
   });
 
   // Le bandeau lui-même doit refléter l'état de clôture (cf. spec) : ce test verrouille la
@@ -136,7 +134,6 @@ describe('TopBar', () => {
     expect(screen.getByRole('menuitem', { name: 'Compétition' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Planning' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Résultats & classement' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: 'Phase finale' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Inscription' })).toBeInTheDocument();
   });
 
@@ -144,7 +141,7 @@ describe('TopBar', () => {
     renderTopBar();
 
     fireEvent.click(screen.getByRole('button', { name: "Plus d'options de navigation" }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Phase finale' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Résultats & classement' }));
 
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });

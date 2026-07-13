@@ -13,7 +13,6 @@ const ALL_TABS: TabConfig[] = [
   { id: 'competition', label: 'Compétition', shortLabel: 'Compét.', path: '/competition' },
   { id: 'planning', label: 'Planning', shortLabel: 'Planning', path: '/planning' },
   { id: 'resultats', label: 'Résultats & classement', shortLabel: 'Résultats', path: '/resultats' },
-  { id: 'finale', label: 'Phase finale', shortLabel: 'Finale', path: '/finale' },
   { id: 'inscription', label: 'Inscription', shortLabel: 'Inscription', path: '/inscription' },
   { id: 'admin', label: 'Admin', shortLabel: 'Admin', path: '/admin', requiresAdmin: true },
 ];
@@ -38,7 +37,6 @@ describe('useMenuTabs', () => {
     expect(result.current.secondaryTabs.map((tab) => tab.id)).toEqual([
       'planning',
       'resultats',
-      'finale',
       'admin',
     ]);
   });
@@ -57,7 +55,6 @@ describe('useMenuTabs', () => {
     ]);
     expect(result.current.secondaryTabs.map((tab) => tab.id)).toEqual([
       'competition',
-      'finale',
       'admin',
     ]);
   });

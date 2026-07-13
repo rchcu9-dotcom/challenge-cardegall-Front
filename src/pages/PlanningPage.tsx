@@ -87,32 +87,34 @@ export function PlanningPage() {
             {matches.length === 0 ? (
               <p>Aucun match planifié pour ce tour.</p>
             ) : (
-              <table className="planning-matches-table">
-                <thead>
-                  <tr>
-                    <th>Terrain</th>
-                    <th>Horaire</th>
-                    <th>Équipe A</th>
-                    <th>Équipe B</th>
-                    <th>Statut</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {matches.map((match) => (
-                    <tr key={match.id}>
-                      <td>{match.terrain ?? 'À déterminer'}</td>
-                      <td>
-                        {match.heureDebutPrevue === null && match.heureFinPrevue === null
-                          ? 'À déterminer'
-                          : `${formatHeure(match.heureDebutPrevue)} – ${formatHeure(match.heureFinPrevue)}`}
-                      </td>
-                      <td>{nomEquipe(match.equipeAId)}</td>
-                      <td>{match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}</td>
-                      <td>{STATUT_MATCH_LABELS[match.statut] ?? match.statut}</td>
+              <div className="table-scroll">
+                <table className="planning-matches-table">
+                  <thead>
+                    <tr>
+                      <th>Terrain</th>
+                      <th>Horaire</th>
+                      <th>Équipe A</th>
+                      <th>Équipe B</th>
+                      <th>Statut</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {matches.map((match) => (
+                      <tr key={match.id}>
+                        <td>{match.terrain ?? 'À déterminer'}</td>
+                        <td>
+                          {match.heureDebutPrevue === null && match.heureFinPrevue === null
+                            ? 'À déterminer'
+                            : `${formatHeure(match.heureDebutPrevue)} – ${formatHeure(match.heureFinPrevue)}`}
+                        </td>
+                        <td>{nomEquipe(match.equipeAId)}</td>
+                        <td>{match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}</td>
+                        <td>{STATUT_MATCH_LABELS[match.statut] ?? match.statut}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
 
             {aucunTerrainAssigne && (

@@ -116,7 +116,6 @@ describe('useVisibleTabs', () => {
       'competition',
       'planning',
       'resultats',
-      'finale',
       'inscription',
     ]);
   });
