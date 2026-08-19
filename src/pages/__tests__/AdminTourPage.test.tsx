@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { AdminTourPage } from '../AdminTourPage';
@@ -394,6 +394,53 @@ describe('AdminTourPage', () => {
 
       expect(await screen.findByText('Erreur 409')).toBeInTheDocument();
     });
+
+    it("ne réécrase pas une saisie de score en cours sur un match existant lors d'une mise à jour du cache qui ajoute un nouveau match", async () => {
+      vi.mocked(tourApi.getTourCourant).mockResolvedValue(
+        buildTourCourant({
+          tour: buildTour({ statut: 'en_cours' }),
+          matches: [
+            buildMatch({ id: 'match-1', terrain: 'A', equipeAId: 'equipe-1', equipeBId: 'equipe-2', statut: 'a_jouer' }),
+          ],
+        }),
+      );
+      vi.mocked(tourApi.reorganiserPlanning).mockResolvedValue(
+        buildTourCourant({
+          tour: buildTour({ statut: 'en_cours' }),
+          matches: [
+            buildMatch({ id: 'match-1', terrain: 'A', equipeAId: 'equipe-1', equipeBId: 'equipe-2', statut: 'a_jouer' }),
+            buildMatch({ id: 'match-2', terrain: 'B', equipeAId: 'equipe-2', equipeBId: 'equipe-1', statut: 'a_jouer' }),
+          ],
+        }),
+      );
+
+      renderPage();
+
+      await screen.findByText('Tour n°1 — En cours');
+
+      // Saisie en cours sur match-1, non soumise.
+      fireEvent.change(screen.getByLabelText('Score DSI'), { target: { value: '2' } });
+      expect(screen.getByLabelText('Score DSI')).toHaveValue(2);
+
+      const itemMatch1 = screen.getByText('DSI – Marketing').closest('.planning-board__match') as HTMLElement;
+      const terrainB = screen.getByText('Terrain B').closest('.planning-board__terrain') as HTMLElement;
+      fireEvent.dragStart(itemMatch1);
+      fireEvent.dragOver(terrainB);
+      fireEvent.drop(terrainB);
+
+      await vi.waitFor(() => {
+        expect(tourApi.reorganiserPlanning).toHaveBeenCalled();
+      });
+
+      // Le cache est mis à jour (setQueryData) avec 2 matchs : la saisie en cours sur match-1
+      // est préservée (row 1 = en-tête, row 2 = match-1, row 3 = match-2).
+      const rows = screen.getAllByRole('row');
+      expect(within(rows[1]).getAllByRole('spinbutton')[0]).toHaveValue(2);
+      // Le nouveau match-2 reçoit des champs de saisie initialisés (vides, scoreA/scoreB serveur null).
+      const match2Inputs = within(rows[2]).getAllByRole('spinbutton');
+      expect(match2Inputs[0]).toHaveValue(null);
+      expect(match2Inputs[1]).toHaveValue(null);
+    });
   });
 
   it('affiche le tableau de classement avec rang, équipe et statistiques', async () => {
@@ -636,6 +683,64 @@ describe('AdminTourPage', () => {
 
       expect(await screen.findByText('Classement final')).toBeInTheDocument();
       expect(screen.queryByText('Paramètres du tour suivant')).not.toBeInTheDocument();
+    });
+
+    it("ne réinitialise pas une édition en cours du formulaire lors d'un refetch du même tour", async () => {
+      const sameTour = buildTour({
+        id: 'tour-1',
+        parametres: {
+          nomsTerrains: ['A', 'B'],
+          dureeMatchMinutes: 15,
+          latenceMinutes: 5,
+          delaiDemarrageMinutes: 3,
+        },
+      });
+      vi.mocked(tourApi.getTourCourant)
+        .mockResolvedValueOnce(
+          buildTourCourant({
+            tour: sameTour,
+            matches: [
+              buildMatch({ id: 'match-1', equipeAId: 'equipe-1', equipeBId: 'equipe-2', statut: 'a_jouer' }),
+            ],
+          }),
+        )
+        .mockResolvedValueOnce(
+          buildTourCourant({
+            tour: sameTour,
+            matches: [
+              buildMatch({
+                id: 'match-1',
+                equipeAId: 'equipe-1',
+                equipeBId: 'equipe-2',
+                statut: 'termine',
+                scoreA: 3,
+                scoreB: 1,
+              }),
+            ],
+            resultatsComplets: true,
+          }),
+        );
+      vi.mocked(tourApi.enregistrerScoreMatch).mockResolvedValue(buildTourCourant());
+
+      renderPage();
+
+      await screen.findByText('Tour n°1 — En cours');
+
+      fireEvent.change(screen.getByLabelText(/Terrains disponibles/), {
+        target: { value: 'Terrain édité par l\'admin' },
+      });
+      expect(screen.getByLabelText(/Terrains disponibles/)).toHaveValue("Terrain édité par l'admin");
+
+      fireEvent.change(screen.getByLabelText('Score DSI'), { target: { value: '3' } });
+      fireEvent.change(screen.getByLabelText('Score Marketing'), { target: { value: '1' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+      await vi.waitFor(() => {
+        expect(tourApi.getTourCourant).toHaveBeenCalledTimes(2);
+      });
+
+      // Le tour.id n'a pas changé (refetch du même tour) : le formulaire édité n'est pas écrasé.
+      expect(screen.getByLabelText(/Terrains disponibles/)).toHaveValue("Terrain édité par l'admin");
     });
   });
 
