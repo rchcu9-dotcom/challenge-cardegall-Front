@@ -30,7 +30,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 export async function listUsers(): Promise<UtilisateurDto[]> {
-  const res = await fetch(`${API_BASE_URL}/users`);
+  const res = await authFetch(`${API_BASE_URL}/users`);
   return handleResponse<UtilisateurDto[]>(res);
 }
 
