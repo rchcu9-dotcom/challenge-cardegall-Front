@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { clearToken, getToken, setToken } from './authToken';
 
 declare const __APP_API_BASE_URL__: string | undefined;
@@ -28,37 +29,39 @@ interface AuthContextValue {
   logout: () => void;
 }
 
+export const AUTH_ME_QUERY_KEY = ['auth', 'me'] as const;
+
+async function fetchCurrentUser(): Promise<AdminProfile | null> {
+  const token = getToken();
+  if (!token) {
+    return null;
+  }
+  const res = await fetch(`${API_BASE_URL}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    clearToken();
+    return null;
+  }
+  return (await res.json()) as AdminProfile;
+}
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AdminProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const loadUser = useCallback(async () => {
-    const token = getToken();
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        clearToken();
-        setUser(null);
-        return;
-      }
-      setUser((await res.json()) as AdminProfile);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const meQuery = useQuery({
+    queryKey: AUTH_ME_QUERY_KEY,
+    queryFn: fetchCurrentUser,
+    retry: false,
+  });
+  const user = meQuery.data ?? null;
+  const loading = meQuery.isLoading;
 
-  useEffect(() => {
-    void loadUser();
-  }, [loadUser]);
+  const refresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY });
+  }, [queryClient]);
 
   const devLogin = useCallback(
     async (email: string, displayName: string) => {
@@ -76,15 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       const { token } = (await res.json()) as { token: string };
       setToken(token);
-      await loadUser();
+      await refresh();
     },
-    [loadUser],
+    [refresh],
   );
 
   const logout = useCallback(() => {
     clearToken();
-    setUser(null);
-  }, []);
+    queryClient.setQueryData(AUTH_ME_QUERY_KEY, null);
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -92,10 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       googleLoginUrl: `${API_BASE_URL}/auth/google`,
       devLogin,
-      refresh: loadUser,
+      refresh,
       logout,
     }),
-    [user, loading, devLogin, loadUser, logout],
+    [user, loading, devLogin, refresh, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

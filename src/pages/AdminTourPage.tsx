@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { PlanningBoard } from '../components/admin/PlanningBoard';
@@ -13,6 +13,7 @@ import {
   terminerTour,
   TerminerTourResultDto,
   TerrainPlanningDto,
+  TourCourantDto,
 } from '../api/tour';
 
 interface ParametresTourForm {
@@ -59,8 +60,12 @@ export function AdminTourPage() {
   const queryClient = useQueryClient();
   const [resultatFinTour, setResultatFinTour] = useState<TerminerTourResultDto | null>(null);
   const [parametresForm, setParametresForm] = useState<ParametresTourForm | null>(null);
+  const [parametresFormTourId, setParametresFormTourId] = useState<string | undefined>(undefined);
   const [scoreInputs, setScoreInputs] = useState<Record<string, { scoreA: string; scoreB: string }>>(
     {},
+  );
+  const [scoreInputsSyncedData, setScoreInputsSyncedData] = useState<TourCourantDto | undefined>(
+    undefined,
   );
 
   const tourCourantQuery = useQuery({
@@ -74,36 +79,34 @@ export function AdminTourPage() {
   });
 
   const tour = tourCourantQuery.data?.tour;
-  // Ne resynchronise le formulaire que lorsque le tour courant change (pas à chaque refetch),
-  // pour ne pas écraser une édition en cours de l'admin.
-  useEffect(() => {
-    if (tour) {
-      setParametresForm(parametresTourToForm(tour.parametres));
-    }
-  }, [tour?.id]);
+  // Pas un effet : on ajuste le state pendant le rendu (cf. doc React "Adjusting state when a
+  // prop changes") pour ne resynchroniser le formulaire que lorsque le tour courant change,
+  // jamais à chaque refetch — une édition en cours de l'admin ne doit jamais être écrasée.
+  if (tour && tour.id !== parametresFormTourId) {
+    setParametresFormTourId(tour.id);
+    setParametresForm(parametresTourToForm(tour.parametres));
+  }
 
-  // Initialise la saisie de score pour chaque nouveau match (par id), sans écraser
-  // une saisie en cours sur les matchs déjà affichés lors d'un refetch.
-  useEffect(() => {
-    const data = tourCourantQuery.data;
-    if (!data) {
-      return;
-    }
-    setScoreInputs((current) => {
-      let changed = false;
-      const next = { ...current };
-      for (const match of data.matches) {
-        if (!(match.id in next)) {
-          next[match.id] = {
-            scoreA: match.scoreA !== null ? String(match.scoreA) : '',
-            scoreB: match.scoreB !== null ? String(match.scoreB) : '',
-          };
-          changed = true;
-        }
+  // Pas un effet : on ajuste le state pendant le rendu, comme ci-dessus. Ajoute une entrée pour
+  // chaque nouveau match reçu, sans jamais écraser une saisie déjà en cours sur un match existant.
+  const tourData = tourCourantQuery.data;
+  if (tourData && tourData !== scoreInputsSyncedData) {
+    setScoreInputsSyncedData(tourData);
+    let changed = false;
+    const next = { ...scoreInputs };
+    for (const match of tourData.matches) {
+      if (!(match.id in next)) {
+        next[match.id] = {
+          scoreA: match.scoreA !== null ? String(match.scoreA) : '',
+          scoreB: match.scoreB !== null ? String(match.scoreB) : '',
+        };
+        changed = true;
       }
-      return changed ? next : current;
-    });
-  }, [tourCourantQuery.data]);
+    }
+    if (changed) {
+      setScoreInputs(next);
+    }
+  }
 
   const nomEquipe = (equipeId: string | null): string => {
     if (!equipeId) {
@@ -145,36 +148,38 @@ export function AdminTourPage() {
 
   function renderClassementTable(entries: ClassementEntryDto[]) {
     return (
-      <table className="tour-classement-table">
-        <thead>
-          <tr>
-            <th>Rang</th>
-            <th>Équipe</th>
-            <th>Pts</th>
-            <th>V</th>
-            <th>N</th>
-            <th>D</th>
-            <th>Buts marqués</th>
-            <th>Buts concédés</th>
-            <th>Diff.</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((entry) => (
-            <tr key={entry.equipeId}>
-              <td>{entry.rang}</td>
-              <td>{nomEquipe(entry.equipeId)}</td>
-              <td>{entry.points}</td>
-              <td>{entry.victoires}</td>
-              <td>{entry.nuls}</td>
-              <td>{entry.defaites}</td>
-              <td>{entry.butsMarques}</td>
-              <td>{entry.butsConcedes}</td>
-              <td>{entry.diffGenerale}</td>
+      <div className="table-scroll">
+        <table className="tour-classement-table">
+          <thead>
+            <tr>
+              <th>Rang</th>
+              <th>Équipe</th>
+              <th>Pts</th>
+              <th>V</th>
+              <th>N</th>
+              <th>D</th>
+              <th>Buts marqués</th>
+              <th>Buts concédés</th>
+              <th>Diff.</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {entries.map((entry) => (
+              <tr key={entry.equipeId}>
+                <td>{entry.rang}</td>
+                <td>{nomEquipe(entry.equipeId)}</td>
+                <td>{entry.points}</td>
+                <td>{entry.victoires}</td>
+                <td>{entry.nuls}</td>
+                <td>{entry.defaites}</td>
+                <td>{entry.butsMarques}</td>
+                <td>{entry.butsConcedes}</td>
+                <td>{entry.diffGenerale}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
   }
 
@@ -203,79 +208,81 @@ export function AdminTourPage() {
           {matches.length === 0 ? (
             <p>Aucun match pour ce tour.</p>
           ) : (
-            <table className="tour-matches-table">
-              <thead>
-                <tr>
-                  <th>Équipe A</th>
-                  <th>Équipe B</th>
-                  <th>Score</th>
-                  <th>Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-                {matches.map((match) => {
-                  const input = scoreInputs[match.id] ?? { scoreA: '', scoreB: '' };
-                  const scoreAValide = input.scoreA !== '' && !Number.isNaN(Number(input.scoreA));
-                  const scoreBValide = input.scoreB !== '' && !Number.isNaN(Number(input.scoreB));
+            <div className="table-scroll">
+              <table className="tour-matches-table">
+                <thead>
+                  <tr>
+                    <th>Équipe A</th>
+                    <th>Équipe B</th>
+                    <th>Score</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {matches.map((match) => {
+                    const input = scoreInputs[match.id] ?? { scoreA: '', scoreB: '' };
+                    const scoreAValide = input.scoreA !== '' && !Number.isNaN(Number(input.scoreA));
+                    const scoreBValide = input.scoreB !== '' && !Number.isNaN(Number(input.scoreB));
 
-                  return (
-                    <tr key={match.id}>
-                      <td>{nomEquipe(match.equipeAId)}</td>
-                      <td>{match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}</td>
-                      <td>
-                        {match.estBye ? (
-                          '—'
-                        ) : (
-                          <div className="tour-matches-table__score-form">
-                            <input
-                              type="number"
-                              min={0}
-                              aria-label={`Score ${nomEquipe(match.equipeAId)}`}
-                              value={input.scoreA}
-                              onChange={(e) =>
-                                setScoreInputs({
-                                  ...scoreInputs,
-                                  [match.id]: { ...input, scoreA: e.target.value },
-                                })
-                              }
-                            />
-                            <span>-</span>
-                            <input
-                              type="number"
-                              min={0}
-                              aria-label={`Score ${nomEquipe(match.equipeBId)}`}
-                              value={input.scoreB}
-                              onChange={(e) =>
-                                setScoreInputs({
-                                  ...scoreInputs,
-                                  [match.id]: { ...input, scoreB: e.target.value },
-                                })
-                              }
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                enregistrerScoreMutation.mutate({
-                                  matchId: match.id,
-                                  scoreA: Number(input.scoreA),
-                                  scoreB: Number(input.scoreB),
-                                })
-                              }
-                              disabled={
-                                !scoreAValide || !scoreBValide || enregistrerScoreMutation.isPending
-                              }
-                            >
-                              Enregistrer
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                      <td>{STATUT_MATCH_LABELS[match.statut] ?? match.statut}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={match.id}>
+                        <td>{nomEquipe(match.equipeAId)}</td>
+                        <td>{match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}</td>
+                        <td>
+                          {match.estBye ? (
+                            '—'
+                          ) : (
+                            <div className="tour-matches-table__score-form">
+                              <input
+                                type="number"
+                                min={0}
+                                aria-label={`Score ${nomEquipe(match.equipeAId)}`}
+                                value={input.scoreA}
+                                onChange={(e) =>
+                                  setScoreInputs({
+                                    ...scoreInputs,
+                                    [match.id]: { ...input, scoreA: e.target.value },
+                                  })
+                                }
+                              />
+                              <span>-</span>
+                              <input
+                                type="number"
+                                min={0}
+                                aria-label={`Score ${nomEquipe(match.equipeBId)}`}
+                                value={input.scoreB}
+                                onChange={(e) =>
+                                  setScoreInputs({
+                                    ...scoreInputs,
+                                    [match.id]: { ...input, scoreB: e.target.value },
+                                  })
+                                }
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  enregistrerScoreMutation.mutate({
+                                    matchId: match.id,
+                                    scoreA: Number(input.scoreA),
+                                    scoreB: Number(input.scoreB),
+                                  })
+                                }
+                                disabled={
+                                  !scoreAValide || !scoreBValide || enregistrerScoreMutation.isPending
+                                }
+                              >
+                                Enregistrer
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                        <td>{STATUT_MATCH_LABELS[match.statut] ?? match.statut}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
           {enregistrerScoreMutation.isError && (
             <p className="inscription-form__error">

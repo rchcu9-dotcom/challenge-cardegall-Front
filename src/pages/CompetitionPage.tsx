@@ -107,66 +107,70 @@ export function CompetitionPage() {
             {matches.length === 0 ? (
               <p>Aucun match pour ce tour.</p>
             ) : (
-              <table className="tour-matches-table">
-                <thead>
-                  <tr>
-                    <th>Équipe A</th>
-                    <th>Équipe B</th>
-                    <th>Score</th>
-                    <th>Statut</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {matches.map((match) => (
-                    <tr key={match.id}>
-                      <td>{nomEquipe(match.equipeAId)}</td>
-                      <td>{match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}</td>
-                      <td>
-                        {match.scoreA !== null && match.scoreB !== null
-                          ? `${match.scoreA} - ${match.scoreB}`
-                          : '—'}
-                      </td>
-                      <td>{STATUT_MATCH_LABELS[match.statut] ?? match.statut}</td>
+              <div className="table-scroll">
+                <table className="tour-matches-table">
+                  <thead>
+                    <tr>
+                      <th>Équipe A</th>
+                      <th>Équipe B</th>
+                      <th>Score</th>
+                      <th>Statut</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {matches.map((match) => (
+                      <tr key={match.id}>
+                        <td>{nomEquipe(match.equipeAId)}</td>
+                        <td>{match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}</td>
+                        <td>
+                          {match.scoreA !== null && match.scoreB !== null
+                            ? `${match.scoreA} - ${match.scoreB}`
+                            : '—'}
+                        </td>
+                        <td>{STATUT_MATCH_LABELS[match.statut] ?? match.statut}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
 
             <h3>Classement</h3>
             {classement.length === 0 ? (
               <p>Aucune donnée de classement.</p>
             ) : (
-              <table className="tour-classement-table">
-                <thead>
-                  <tr>
-                    <th>Rang</th>
-                    <th>Équipe</th>
-                    <th>Pts</th>
-                    <th>V</th>
-                    <th>N</th>
-                    <th>D</th>
-                    <th>Buts marqués</th>
-                    <th>Buts concédés</th>
-                    <th>Diff.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {classement.map((entry) => (
-                    <tr key={entry.equipeId}>
-                      <td>{entry.rang}</td>
-                      <td>{nomEquipe(entry.equipeId)}</td>
-                      <td>{entry.points}</td>
-                      <td>{entry.victoires}</td>
-                      <td>{entry.nuls}</td>
-                      <td>{entry.defaites}</td>
-                      <td>{entry.butsMarques}</td>
-                      <td>{entry.butsConcedes}</td>
-                      <td>{entry.diffGenerale}</td>
+              <div className="table-scroll">
+                <table className="tour-classement-table">
+                  <thead>
+                    <tr>
+                      <th>Rang</th>
+                      <th>Équipe</th>
+                      <th>Pts</th>
+                      <th>V</th>
+                      <th>N</th>
+                      <th>D</th>
+                      <th>Buts marqués</th>
+                      <th>Buts concédés</th>
+                      <th>Diff.</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {classement.map((entry) => (
+                      <tr key={entry.equipeId}>
+                        <td>{entry.rang}</td>
+                        <td>{nomEquipe(entry.equipeId)}</td>
+                        <td>{entry.points}</td>
+                        <td>{entry.victoires}</td>
+                        <td>{entry.nuls}</td>
+                        <td>{entry.defaites}</td>
+                        <td>{entry.butsMarques}</td>
+                        <td>{entry.butsConcedes}</td>
+                        <td>{entry.diffGenerale}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </>
         )}

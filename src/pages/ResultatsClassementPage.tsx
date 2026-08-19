@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { listEquipes } from '../api/equipe';
 import { getTourCourant } from '../api/classement';
+import { getPhaseFinaleCourante } from '../api/finale';
 import { useSelectedEquipe } from '../hooks/useSelectedEquipe';
+import { PhaseFinaleBracket } from '../components/finale/PhaseFinaleBracket';
 
 export function ResultatsClassementPage() {
   const [selectedEquipeId, setSelectedEquipeId] = useSelectedEquipe();
@@ -14,6 +16,11 @@ export function ResultatsClassementPage() {
   const tourCourantQuery = useQuery({
     queryKey: ['tour-courant'],
     queryFn: getTourCourant,
+  });
+
+  const phaseFinaleQuery = useQuery({
+    queryKey: ['phase-finale'],
+    queryFn: getPhaseFinaleCourante,
   });
 
   const equipesEngagees = (equipesQuery.data ?? [])
@@ -64,6 +71,16 @@ export function ResultatsClassementPage() {
           </select>
         </div>
       </section>
+
+      {phaseFinaleQuery.data?.demarree && (
+        <section className="page__card">
+          <h2>Phase finale</h2>
+          <PhaseFinaleBracket
+            phaseFinale={phaseFinaleQuery.data}
+            equipes={equipesQuery.data ?? []}
+          />
+        </section>
+      )}
 
       <section className="page__card">
         <h2>Classement</h2>
@@ -126,28 +143,30 @@ export function ResultatsClassementPage() {
                 : 'Aucun résultat pour cette équipe pour le moment.'}
             </p>
           ) : (
-            <table className="tour-matches-table">
-              <thead>
-                <tr>
-                  <th>Équipe A</th>
-                  <th>Équipe B</th>
-                  <th>Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {resultatsFiltres.map((match) => (
-                  <tr key={match.id}>
-                    <td>{nomEquipe(match.equipeAId)}</td>
-                    <td>{match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}</td>
-                    <td>
-                      {match.scoreA !== null && match.scoreB !== null
-                        ? `${match.scoreA} - ${match.scoreB}`
-                        : '—'}
-                    </td>
+            <div className="table-scroll">
+              <table className="tour-matches-table">
+                <thead>
+                  <tr>
+                    <th>Équipe A</th>
+                    <th>Équipe B</th>
+                    <th>Score</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {resultatsFiltres.map((match) => (
+                    <tr key={match.id}>
+                      <td>{nomEquipe(match.equipeAId)}</td>
+                      <td>{match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}</td>
+                      <td>
+                        {match.scoreA !== null && match.scoreB !== null
+                          ? `${match.scoreA} - ${match.scoreB}`
+                          : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )
         )}
       </section>

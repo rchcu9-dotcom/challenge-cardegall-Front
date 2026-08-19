@@ -37,38 +37,40 @@ export function LoginPage() {
         </a>
       </section>
 
-      <section className="page__card">
-        <h2>Connexion locale (développement)</h2>
-        <p>
-          Tant que la connexion Google n'est pas configurée (ou pour tester rapidement en local),
-          utilisez ce formulaire — désactivé en production.
-        </p>
-        <form onSubmit={handleDevLogin}>
-          <label>
-            Email
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </label>
-          <label>
-            Nom affiché
-            <input
-              type="text"
-              required
-              minLength={1}
-              value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
-            />
-          </label>
-          <button type="submit" disabled={pending}>
-            Connexion test
-          </button>
-          {error && <p className="inscription-form__error">{error}</p>}
-        </form>
-      </section>
+      {!import.meta.env.PROD && (
+        <section className="page__card">
+          <h2>Connexion locale (développement)</h2>
+          <p>
+            Tant que la connexion Google n'est pas configurée (ou pour tester rapidement en
+            local), utilisez ce formulaire — indisponible en production.
+          </p>
+          <form onSubmit={handleDevLogin}>
+            <label>
+              Email
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </label>
+            <label>
+              Nom affiché
+              <input
+                type="text"
+                required
+                minLength={1}
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+              />
+            </label>
+            <button type="submit" disabled={pending}>
+              Connexion test
+            </button>
+            {error && <p className="inscription-form__error">{error}</p>}
+          </form>
+        </section>
+      )}
     </div>
   );
 }

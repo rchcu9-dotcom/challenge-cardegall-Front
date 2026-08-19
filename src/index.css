@@ -4,6 +4,7 @@
 
 body {
   margin: 0;
+  overflow-x: hidden;
 }
 
 .page h1 {
@@ -279,6 +280,8 @@ body {
 
 .table-scroll {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
 }
 
 .tour-matches-table,

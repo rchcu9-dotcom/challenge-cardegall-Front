@@ -4,11 +4,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ResultatsClassementPage } from '../ResultatsClassementPage';
 import * as equipeApi from '../../api/equipe';
 import * as classementApi from '../../api/classement';
+import * as finaleApi from '../../api/finale';
 import type { EquipeDto } from '../../api/equipe';
 import type { MatchDto, TourCourantDto, TourDto, ClassementEntryDto } from '../../api/classement';
+import type { MatchFinaleDto, PhaseFinaleDto } from '../../api/finale';
 
 vi.mock('../../api/equipe');
 vi.mock('../../api/classement');
+vi.mock('../../api/finale');
 
 const STORAGE_KEY = 'cardegall:mon-equipe';
 
@@ -86,6 +89,31 @@ function buildTourCourant(overrides: Partial<TourCourantDto> = {}): TourCourantD
   };
 }
 
+function buildMatchFinale(overrides: Partial<MatchFinaleDto> = {}): MatchFinaleDto {
+  return {
+    id: 'match-finale-1',
+    type: 'demi_finale_a',
+    equipeAId: 'equipe-1',
+    equipeBId: 'equipe-4',
+    scoreA: null,
+    scoreB: null,
+    statut: 'a_jouer',
+    ...overrides,
+  };
+}
+
+function buildPhaseFinale(overrides: Partial<PhaseFinaleDto> = {}): PhaseFinaleDto {
+  return {
+    demarree: false,
+    statut: null,
+    demiFinaleA: null,
+    demiFinaleB: null,
+    finaleCardebat: null,
+    finaleLeGall: null,
+    ...overrides,
+  };
+}
+
 function renderPage() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -110,6 +138,8 @@ describe('ResultatsClassementPage', () => {
   beforeEach(() => {
     vi.mocked(equipeApi.listEquipes).mockReset();
     vi.mocked(classementApi.getTourCourant).mockReset();
+    vi.mocked(finaleApi.getPhaseFinaleCourante).mockReset();
+    vi.mocked(finaleApi.getPhaseFinaleCourante).mockResolvedValue(buildPhaseFinale({ demarree: false }));
     localStorage.clear();
   });
 
@@ -193,6 +223,65 @@ describe('ResultatsClassementPage', () => {
       const select = (await screen.findByLabelText('Mon équipe :')) as HTMLSelectElement;
       await within(select).findByRole('option', { name: 'Marketing' });
       expect(select.value).toBe('equipe-2');
+    });
+  });
+
+  describe('Phase finale', () => {
+    it("n'affiche aucun bloc \"Phase finale\" quand elle n'est pas démarrée", async () => {
+      vi.mocked(equipeApi.listEquipes).mockResolvedValue([]);
+      vi.mocked(classementApi.getTourCourant).mockResolvedValue(buildTourCourant());
+      vi.mocked(finaleApi.getPhaseFinaleCourante).mockResolvedValue(buildPhaseFinale({ demarree: false }));
+
+      renderPage();
+
+      await screen.findByText('Aucune donnée de classement.');
+
+      expect(screen.queryByRole('heading', { name: 'Phase finale' })).not.toBeInTheDocument();
+    });
+
+    it('affiche le bracket de phase finale au-dessus du bloc "Classement" quand elle est démarrée', async () => {
+      vi.mocked(equipeApi.listEquipes).mockResolvedValue([
+        buildEquipe({ id: 'equipe-1', nom: 'DSI' }),
+        buildEquipe({ id: 'equipe-2', nom: 'Marketing' }),
+        buildEquipe({ id: 'equipe-3', nom: 'Finance' }),
+        buildEquipe({ id: 'equipe-4', nom: 'RH' }),
+      ]);
+      vi.mocked(classementApi.getTourCourant).mockResolvedValue(buildTourCourant());
+      vi.mocked(finaleApi.getPhaseFinaleCourante).mockResolvedValue(
+        buildPhaseFinale({
+          demarree: true,
+          statut: 'en_cours',
+          demiFinaleA: buildMatchFinale({
+            id: 'demi-a',
+            type: 'demi_finale_a',
+            equipeAId: 'equipe-1',
+            equipeBId: 'equipe-4',
+            scoreA: 3,
+            scoreB: 1,
+            statut: 'termine',
+          }),
+          demiFinaleB: buildMatchFinale({
+            id: 'demi-b',
+            type: 'demi_finale_b',
+            equipeAId: 'equipe-2',
+            equipeBId: 'equipe-3',
+            statut: 'a_jouer',
+          }),
+        }),
+      );
+
+      renderPage();
+
+      const phaseFinaleHeading = await screen.findByRole('heading', { name: 'Phase finale' });
+      expect(screen.getByText('DSI vs RH')).toBeInTheDocument();
+      expect(screen.getByText('3 - 1')).toBeInTheDocument();
+
+      const classementHeading = await within(getSection('Classement')).findByRole('heading', {
+        name: 'Classement',
+      });
+      expect(
+        phaseFinaleHeading.compareDocumentPosition(classementHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
     });
   });
 

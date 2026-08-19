@@ -23,7 +23,6 @@ export const tabsConfig: TabConfig[] = [
   { id: 'competition', label: 'Compétition', shortLabel: 'Compét.', path: '/competition' },
   { id: 'planning', label: 'Planning', shortLabel: 'Planning', path: '/planning' },
   { id: 'resultats', label: 'Résultats & classement', shortLabel: 'Résultats', path: '/resultats' },
-  { id: 'finale', label: 'Phase finale', shortLabel: 'Finale', path: '/finale' },
   { id: 'inscription', label: 'Inscription', shortLabel: 'Inscription', path: '/inscription' },
   { id: 'admin', label: 'Admin', shortLabel: 'Admin', path: '/admin', requiresAdmin: true },
 ];

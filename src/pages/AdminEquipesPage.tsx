@@ -22,34 +22,36 @@ export function AdminEquipesPage() {
         ) : equipes.length === 0 ? (
           <p>Aucune équipe inscrite pour le moment.</p>
         ) : (
-          <table className="admin-equipes-table">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Capitaine</th>
-                <th>Email</th>
-                <th>Joueurs (approx.)</th>
-                <th>Féminines envisagées</th>
-                <th>Commentaire</th>
-                <th>Statut</th>
-                <th>Date d'inscription</th>
-              </tr>
-            </thead>
-            <tbody>
-              {equipes.map((equipe) => (
-                <tr key={equipe.id}>
-                  <td>{equipe.nom}</td>
-                  <td>{equipe.capitainePseudo ?? equipe.capitaineUserId}</td>
-                  <td>{equipe.capitaineEmail ?? '—'}</td>
-                  <td>{equipe.nbJoueursApprox}</td>
-                  <td>{equipe.nbFemininesEnvisage}</td>
-                  <td>{equipe.commentaire ?? '—'}</td>
-                  <td>{STATUT_EQUIPE_LABELS[equipe.statut]}</td>
-                  <td>{new Date(equipe.dateInscription).toLocaleDateString('fr-FR')}</td>
+          <div className="table-scroll">
+            <table className="admin-equipes-table">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Capitaine</th>
+                  <th>Email</th>
+                  <th>Joueurs (approx.)</th>
+                  <th>Féminines envisagées</th>
+                  <th>Commentaire</th>
+                  <th>Statut</th>
+                  <th>Date d'inscription</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {equipes.map((equipe) => (
+                  <tr key={equipe.id}>
+                    <td>{equipe.nom}</td>
+                    <td>{equipe.capitainePseudo ?? equipe.capitaineUserId}</td>
+                    <td>{equipe.capitaineEmail ?? '—'}</td>
+                    <td>{equipe.nbJoueursApprox}</td>
+                    <td>{equipe.nbFemininesEnvisage}</td>
+                    <td>{equipe.commentaire ?? '—'}</td>
+                    <td>{STATUT_EQUIPE_LABELS[equipe.statut]}</td>
+                    <td>{new Date(equipe.dateInscription).toLocaleDateString('fr-FR')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>

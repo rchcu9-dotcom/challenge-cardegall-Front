@@ -1,5 +1,35 @@
 import { useQuery } from '@tanstack/react-query';
 import { listEquipes } from '../api/equipe';
+import { getTourCourant, type MatchDto } from '../api/planning';
+
+function trierProchainsMatchs(matches: MatchDto[]): MatchDto[] {
+  return matches.slice().sort((a, b) => {
+    const terrainA = a.terrain ?? '';
+    const terrainB = b.terrain ?? '';
+    if (terrainA !== terrainB) {
+      if (terrainA === '') return 1;
+      if (terrainB === '') return -1;
+      return terrainA.localeCompare(terrainB);
+    }
+
+    const heureA = a.heureDebutPrevue ?? '';
+    const heureB = b.heureDebutPrevue ?? '';
+    if (heureA !== heureB) {
+      if (heureA === '') return 1;
+      if (heureB === '') return -1;
+      return heureA.localeCompare(heureB);
+    }
+
+    return 0;
+  });
+}
+
+function formatHeure(iso: string | null): string {
+  if (!iso) {
+    return 'À déterminer';
+  }
+  return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
 
 export function HomePage() {
   const equipesQuery = useQuery({
@@ -7,8 +37,26 @@ export function HomePage() {
     queryFn: listEquipes,
   });
 
+  const tourCourantQuery = useQuery({
+    queryKey: ['tour-courant'],
+    queryFn: getTourCourant,
+    retry: false,
+  });
+
   const equipes = [...(equipesQuery.data ?? [])].sort((a, b) =>
     a.dateInscription.localeCompare(b.dateInscription),
+  );
+
+  const nomEquipe = (equipeId: string | null): string => {
+    if (!equipeId) {
+      return 'Becot';
+    }
+    const equipe = (equipesQuery.data ?? []).find((e) => e.id === equipeId);
+    return equipe?.nom ?? equipeId;
+  };
+
+  const prochainsMatchs = trierProchainsMatchs(
+    (tourCourantQuery.data?.matches ?? []).filter((match) => match.statut !== 'termine'),
   );
 
   return (
@@ -43,7 +91,21 @@ export function HomePage() {
 
       <section className="page__card">
         <h2>Prochains matchs</h2>
-        <p>Aucun match planifié pour le moment — revenez après le lancement du premier tour.</p>
+        {tourCourantQuery.isLoading ? (
+          <p>Chargement…</p>
+        ) : prochainsMatchs.length === 0 ? (
+          <p>Aucun match planifié pour le moment — revenez après le lancement du premier tour.</p>
+        ) : (
+          <ul>
+            {prochainsMatchs.map((match) => (
+              <li key={match.id}>
+                {nomEquipe(match.equipeAId)} vs {match.estBye ? 'Becot' : nomEquipe(match.equipeBId)}
+                {' — '}
+                {match.terrain ?? 'Terrain à déterminer'} — {formatHeure(match.heureDebutPrevue)}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="page__card">
